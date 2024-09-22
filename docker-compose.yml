@@ -1,0 +1,64 @@
+services:
+  web:
+    build: .
+    environment:
+      DB_USER: pastebin
+      DB_PASSWORD_FILE: /run/secrets/db_password
+      JWT_SECRET_FILE: /run/secrets/jwt_secret
+    ports:
+      - "8000:5000"
+    volumes:
+      - ./src:/app
+    secrets:
+      - jwt_secret
+      - db_password
+    depends_on:
+      db:
+        condition: service_healthy
+  db:
+    image: mysql:latest
+    restart: on-failure
+    environment:
+      MYSQL_DATABASE: pastebin
+      MYSQL_USER: pastebin
+      MYSQL_PASSWORD_FILE: /run/secrets/db_password
+      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/db_root_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - db-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+    secrets:
+      - db_root_password
+      - db_password
+  db-migrations:
+    image: flyway/flyway
+    entrypoint: ["/bin/sh", "-c"]
+    command: >
+      "flyway
+      -url=jdbc:mysql://db?allowPublicKeyRetrieval=true
+      -schemas=pastebin
+      -user=root
+      -password=$(cat /run/secrets/db_root_password)
+      -connectRetries=60
+      migrate"
+    volumes:
+      - ./migrations:/flyway/sql
+    depends_on:
+      - db
+    secrets:
+      - db_root_password
+
+volumes:
+  db-data:
+
+secrets:
+  db_password:
+    file: db_password.txt
+  db_root_password:
+    file: db_root_password.txt
+  jwt_secret:
+    file: jwt_secret.txt
