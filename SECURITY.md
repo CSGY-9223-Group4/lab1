@@ -20,4 +20,4 @@ After the initial reply to your report, the security team will keep you informed
 
 ## Learning More About Security
 
-To learn more about securing an Electron application, please see the [security tutorial](./security.md).
+To learn more about securing an Electron application, please see the [security tutorial](./SECURITY.md).
