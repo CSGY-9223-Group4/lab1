@@ -1,0 +1,29 @@
+name: Black Formatter
+
+on:
+  push:
+    branches:
+      - main  # Default branch
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'  # Change to your preferred Python version
+
+      - name: Install dependencies
+        run: |
+          pip install black
+
+      - name: Run Black
+        run: |
+          black --check .
