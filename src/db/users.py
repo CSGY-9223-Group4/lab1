@@ -6,13 +6,13 @@ import mysql.connector
 import os
 
 from ..exceptions.user_exists_exception import UserAlreadyExistsException
+from ..config import settings
 
-users_db_password = open(os.environ["DB_PASSWORD_FILE"], "r").read().strip()
 users_db = mysql.connector.connect(
-    host="db",
-    user=os.environ["DB_USER"],
-    password=users_db_password,
-    database="pastebin",
+    host=settings.DB_HOST,
+    user=settings.DB_USER,
+    password=settings.DB_PASSWORD,
+    database=settings.DB_NAME
 )
 
 CREATE_USER_STATEMENT = "INSERT INTO users (username, password) VALUES (%s, %s)"

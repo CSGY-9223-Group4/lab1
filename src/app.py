@@ -6,7 +6,7 @@ import os
 from .exceptions.auth_exception import AuthException
 from .exceptions.user_exists_exception import UserAlreadyExistsException
 
-from .api import pastebin
+from .api import note_service, user_service
 
 
 app = Flask(__name__)
@@ -25,7 +25,7 @@ def register_user():
         if not username or not password:
             return jsonify({"error": "Missing username or password"}), 400
 
-        access_token = pastebin.register_user(username, password)
+        access_token = user_service.register_user(username, password)
         return jsonify(message="User registered", access_token=access_token), 200
     except UnsupportedMediaType as e:
         return jsonify({"error": "Unsupported media type: " + e.get_description()}), 415
@@ -44,7 +44,7 @@ def login():
         if not username or not password:
             return jsonify({"error": "Missing username or password"}), 400
 
-        access_token = pastebin.login(username, password)
+        access_token = user_service.login(username, password)
         return jsonify(access_token=access_token), 200
     except UnsupportedMediaType as e:
         return jsonify({"error": "Unsupported media type: " + e.get_description()}), 415
@@ -60,6 +60,38 @@ def login():
 def protected():
     try:
         return jsonify(logged_in_as=get_jwt_identity()), 200
+    except Exception as e:
+        app.log_exception(e)
+        return jsonify({"error": INTERNAL_SERVER_ERROR}), 500
+
+USER_ID: int = 1
+
+@app.route("/v1/notes", methods=["GET"])
+@jwt_required()
+def get_notes():
+    try:
+        db_notes = note_service.get_notes(USER_ID)
+        notes_list = [note.to_dict() for note in db_notes]
+        return jsonify(notes_list)
+    except Exception as e:
+        app.log_exception(e)
+        return jsonify({"error": INTERNAL_SERVER_ERROR}), 500
+    
+@app.route("/v1/notes", methods=["POST"])
+def post_note():
+    try:
+        # TODO: apply realistic validation
+        note_title = request.json.get("title", None)
+        note_text = request.json.get("text", None)
+        is_public = request.json.get("public", False)
+        author_id = USER_ID
+        if not note_title or not note_text:
+            return jsonify({"error": "Missing note title or text"}), 400
+
+        db_note = note_service.post_note(note_title, note_text, author_id, is_public)
+        return jsonify(db_note.to_dict()), 200
+    except UnsupportedMediaType as e:
+        return jsonify({"error": "Unsupported media type: " + e.get_description()}), 415
     except Exception as e:
         app.log_exception(e)
         return jsonify({"error": INTERNAL_SERVER_ERROR}), 500
