@@ -2,8 +2,11 @@ services:
   web:
     build: .
     environment:
+      DB_HOST: db
+      DB_PORT: 3306
       DB_USER: pastebin
       DB_PASSWORD_FILE: /run/secrets/db_password
+      DB_NAME: pastebin
       JWT_SECRET_FILE: /run/secrets/jwt_secret
     ports:
       - "8000:5000"
