@@ -17,6 +17,7 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 # Base class for declarative models
 Base = declarative_base()
 
+
 # Dependency for session management (useful in web frameworks like FastAPI)
 def get_db():
     db = SessionLocal()
