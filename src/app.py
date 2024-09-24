@@ -64,7 +64,9 @@ def protected():
         app.log_exception(e)
         return jsonify({"error": INTERNAL_SERVER_ERROR}), 500
 
+
 USER_ID: int = 1
+
 
 @app.route("/v1/notes", methods=["GET"])
 @jwt_required()
@@ -76,7 +78,8 @@ def get_notes():
     except Exception as e:
         app.log_exception(e)
         return jsonify({"error": INTERNAL_SERVER_ERROR}), 500
-    
+
+
 @app.route("/v1/notes", methods=["POST"])
 def post_note():
     try:
