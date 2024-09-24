@@ -4,9 +4,9 @@
 ## Usage
 1. Create secrets using Docker
     ```bash
-    openssl rand -base64 20 > db_password.txt
-    openssl rand -base64 20 > db_root_password.txt
-    openssl rand -base64 32 > jwt_secret.txt
+    echo "JWT_SECRET=`openssl rand -base64 32`" >> .env
+    echo "DB_PASSWORD=`openssl rand -base64 20`" >> .env
+    echo "DB_ROOT_PASSWORD=`openssl rand -base64 20`" >> .env
     ```
 2. Start containers
     ```bash

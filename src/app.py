@@ -7,10 +7,11 @@ from .exceptions.auth_exception import AuthException
 from .exceptions.user_exists_exception import UserAlreadyExistsException
 
 from .api import note_service, user_service
+from .config import settings
 
 
 app = Flask(__name__)
-app.config["JWT_SECRET_KEY"] = open(os.environ["JWT_SECRET_FILE"], "r").read().strip()
+app.config["JWT_SECRET_KEY"] = settings.JWT_SECRET_KEY
 jwt = JWTManager(app)
 
 INTERNAL_SERVER_ERROR = "Internal Server Error"
