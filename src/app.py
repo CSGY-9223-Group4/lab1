@@ -65,14 +65,16 @@ def protected():
         return jsonify({"error": INTERNAL_SERVER_ERROR}), 500
 
 
-USER_ID: int = 1
-
-
 @app.route("/v1/notes", methods=["GET"])
 @jwt_required()
 def get_notes():
     try:
-        db_notes = note_service.get_notes(USER_ID)
+        # TODO: add user_id to JWT and use it there
+        author_id = request.args.get("author_id", None)
+        if not author_id:
+            return jsonify({"error": "Missing author id"}), 400
+
+        db_notes = note_service.get_notes(author_id)
         notes_list = [note.to_dict() for note in db_notes]
         return jsonify(notes_list)
     except Exception as e:
@@ -81,15 +83,17 @@ def get_notes():
 
 
 @app.route("/v1/notes", methods=["POST"])
+@jwt_required()
 def post_note():
     try:
         # TODO: apply realistic validation
         note_title = request.json.get("title", None)
         note_text = request.json.get("text", None)
         is_public = request.json.get("public", False)
-        author_id = USER_ID
-        if not note_title or not note_text:
-            return jsonify({"error": "Missing note title or text"}), 400
+        # TODO: add user_id to JWT and use it there
+        author_id = request.json.get("author_id", None)
+        if not note_title or not note_text or not author_id:
+            return jsonify({"error": "Missing note title or text or author id"}), 400
 
         db_note = note_service.post_note(note_title, note_text, author_id, is_public)
         return jsonify(db_note.to_dict()), 200
