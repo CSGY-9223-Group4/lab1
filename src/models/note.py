@@ -1,7 +1,8 @@
 from sqlalchemy import Column, String, Text, Boolean, DateTime, ForeignKey, func
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.mysql import INTEGER
-from src.db.database import Base
+
+from ..db.database import Base
 
 
 class Note(Base):
