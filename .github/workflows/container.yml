@@ -1,0 +1,114 @@
+name: Docker Security Checks
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+      
+      # Rule #0: Keep Host and Docker Up to Date
+      - name: Check Docker Version
+        run: |
+          docker --version
+          # Optionally, add checks against a list of allowed versions
+
+      # Rule #1: Do Not Expose the Docker Daemon Socket
+      - name: Check for Docker Socket Exposure
+        run: |
+          if grep -q "/var/run/docker.sock" **/*.yml; then
+            echo "Error: Docker socket is exposed."
+            exit 1
+          fi
+
+      # Rule #2: Set a User
+      - name: Run Hadolint for Dockerfile User Check
+        uses: hadolint/hadolint-action@v1
+        with:
+          args: '--ignore DL3006' # Ignore user directive warning
+
+      # Rule #3: Limit Capabilities
+      - name: Check for Privileged Flags
+        run: |
+          if grep -q '--privileged' **/*.yml; then
+            echo "Error: Privileged flag is used."
+            exit 1
+          fi
+
+      # Rule #4: Prevent In-Container Privilege Escalation
+      - name: Check for Privilege Escalation Prevention
+        run: |
+          if grep -q "allowPrivilegeEscalation: true" **/*.yml; then
+            echo "Error: Privilege escalation is allowed."
+            exit 1
+          fi
+
+      # Rule #5: Be Mindful of Inter-Container Connectivity
+      - name: Check for Custom Network Usage
+        run: |
+          if ! grep -q 'networks:' **/*.yml; then
+            echo "Warning: Custom Docker networks are not used."
+          fi
+
+      # Rule #6: Use Linux Security Module
+      - name: Check for Security Profiles
+        run: |
+          if ! grep -q 'securityOpt:' **/*.yml; then
+            echo "Warning: No security profiles defined."
+          fi
+
+      # Rule #7: Limit Resources
+      - name: Check Resource Limits
+        run: |
+          if ! grep -q 'mem_limit:' **/*.yml; then
+            echo "Warning: No memory limits defined."
+          fi
+
+      # Rule #8: Set Filesystem and Volumes to Read-Only
+      - name: Check for Read-Only Filesystem
+        run: |
+          if grep -q 'read_only: false' **/*.yml; then
+            echo "Error: Read-only filesystem is not set."
+            exit 1
+          fi
+
+      # Rule #9: Integrate Container Scanning Tools
+      - name: Run Trivy for Vulnerability Scanning
+        run: |
+          trivy image --exit-code 1 --severity HIGH,CRITICAL your_image:tag
+
+      # Rule #10: Check Docker Daemon Logging Level
+      - name: Check Docker Daemon Logging Level
+        run: |
+          if ! grep -q '"log-level": "info"' /etc/docker/daemon.json; then
+            echo "Warning: Docker daemon logging level is not set to info."
+          fi
+
+      # Rule #11: Run Docker in Rootless Mode
+      - name: Check for Rootless Docker
+        run: |
+          if [ "$(docker info | grep 'rootless')" != "rootless: true" ]; then
+            echo "Warning: Docker is not running in rootless mode."
+          fi
+
+      # Rule #12: Utilize Docker Secrets
+      - name: Check for Docker Secrets Usage
+        run: |
+          if ! grep -q 'secrets:' **/*.yml; then
+            echo "Warning: Docker Secrets are not utilized."
+          fi
+
+      # Rule #13: Enhance Supply Chain Security
+      - name: Check for SBOM Generation
+        run: |
+          if ! grep -q 'sbom:' **/*.yml; then
+            echo "Warning: SBOM generation is not defined."
+          fi
+
+
+
