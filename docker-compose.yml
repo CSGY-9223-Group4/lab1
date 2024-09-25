@@ -5,16 +5,13 @@ services:
       DB_HOST: db
       DB_PORT: 3306
       DB_USER: pastebin
-      DB_PASSWORD_FILE: /run/secrets/db_password
       DB_NAME: pastebin
-      JWT_SECRET_FILE: /run/secrets/jwt_secret
+      DB_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
     ports:
       - "8000:5000"
     volumes:
       - ./src:/app
-    secrets:
-      - jwt_secret
-      - db_password
     depends_on:
       db:
         condition: service_healthy
@@ -24,8 +21,8 @@ services:
     environment:
       MYSQL_DATABASE: pastebin
       MYSQL_USER: pastebin
-      MYSQL_PASSWORD_FILE: /run/secrets/db_password
-      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/db_root_password
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
     ports:
       - "3306:3306"
     volumes:
@@ -34,34 +31,23 @@ services:
       test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
       timeout: 20s
       retries: 10
-    secrets:
-      - db_root_password
-      - db_password
   db-migrations:
     image: flyway/flyway
     entrypoint: ["/bin/sh", "-c"]
+    environment:
+      DB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
     command: >
       "flyway
       -url=jdbc:mysql://db?allowPublicKeyRetrieval=true
       -schemas=pastebin
       -user=root
-      -password=$(cat /run/secrets/db_root_password)
+      -password=$DB_ROOT_PASSWORD
       -connectRetries=60
       migrate"
     volumes:
       - ./migrations:/flyway/sql
     depends_on:
       - db
-    secrets:
-      - db_root_password
 
 volumes:
   db-data:
-
-secrets:
-  db_password:
-    file: db_password.txt
-  db_root_password:
-    file: db_root_password.txt
-  jwt_secret:
-    file: jwt_secret.txt
