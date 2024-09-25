@@ -12,7 +12,7 @@ users_db = mysql.connector.connect(
     host=settings.DB_HOST,
     user=settings.DB_USER,
     password=settings.DB_PASSWORD,
-    database=settings.DB_NAME
+    database=settings.DB_NAME,
 )
 
 CREATE_USER_STATEMENT = "INSERT INTO users (username, password) VALUES (%s, %s)"
@@ -40,6 +40,8 @@ def check_password(username: str, password: str) -> bool:
         combined = base64.b64decode(encoded_password)
         stored_hashed_password = combined[:32]
         stored_salt = combined[32:]
-        hashed_password = hashlib.pbkdf2_hmac("sha256", password.encode(), stored_salt, 100000)
+        hashed_password = hashlib.pbkdf2_hmac(
+            "sha256", password.encode(), stored_salt, 100000
+        )
         return stored_hashed_password == hashed_password
     return False
