@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       
       # Rule #0: Keep Host and Docker Up to Date
       - name: Check Docker Version
@@ -28,7 +28,7 @@ jobs:
 
       # Rule #2: Set a User
       - name: Run Hadolint for Dockerfile User Check
-        uses: hadolint/hadolint-action@v1
+        uses: hadolint/hadolint-action@v3.1.0
         with:
           args: '--ignore DL3006' # Ignore user directive warning
 
