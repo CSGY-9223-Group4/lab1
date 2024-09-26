@@ -1,12 +1,35 @@
+from collections.abc import Sequence
+from ..db import notes as NotesDB
 from ..models.note import Note
-from ..db.notes import get_notes_for_user, create_note
 
 
-def get_notes(user_id: int) -> list[Note]:
-    return get_notes_for_user(user_id)
+def get_notes(author_id: int) -> Sequence[Note]:
+    return NotesDB.get_notes_for_user(author_id)
 
 
-def post_note(
+def get_note_by_id(author_id: int, note_id: int) -> Note | None:
+    note = NotesDB.get_note_by_id(note_id)
+    if note is None:
+        return None
+
+    return note if note.is_public or note.author_id == author_id else None
+
+
+def create_note(
     note_title: str, note_text: str, author_id: int, is_public: bool = False
 ) -> Note:
-    return create_note(note_title, note_text, author_id, is_public)
+    return NotesDB.create_note(note_title, note_text, author_id, is_public)
+
+
+def update_note(
+    note_id: int,
+    note_title: str,
+    note_text: str,
+    author_id: int,
+    is_public: bool = False,
+) -> Note:
+    return NotesDB.update_note(note_id, note_title, note_text, author_id, is_public)
+
+
+def delete_note(author_id: int, note_id: int) -> bool:
+    return NotesDB.delete_note(author_id, note_id)
