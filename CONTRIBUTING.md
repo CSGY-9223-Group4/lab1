@@ -10,7 +10,8 @@ Reading and following these guidelines will help us make the contribution proces
 * [Getting Started](#getting-started)
     * [Issues](#issues)
     * [Pull Requests](#pull-requests)
-
+* [README.md](./README.md)
+  
 ## Code of Conduct
 
 We take our open source community seriously and hold ourselves and other contributors to high standards of communication. By participating and contributing to this project, you agree to uphold our [Code of Conduct](https://github.com/CSGY-9223-Group4/lab1/blob/main/CODE-OF-CONDUCT.md).
@@ -51,4 +52,3 @@ In general, we follow the ["fork-and-pull" Git workflow](https://github.com/susa
 5. Following any formatting and testing guidelines specific to this repo
 6. Push changes to your fork
 7. Open a PR in our repository and follow the PR template so that we can efficiently review the changes.
-
