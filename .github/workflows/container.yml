@@ -109,6 +109,3 @@ jobs:
           if ! grep -q 'sbom:' **/*.yml; then
             echo "Warning: SBOM generation is not defined."
           fi
-
-
-
