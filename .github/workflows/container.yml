@@ -77,10 +77,11 @@ jobs:
             exit 1
           fi
 
-      # Rule #9: Integrate Container Scanning Tools
-      - name: Run Trivy for Vulnerability Scanning
-        run: |
-          trivy image --exit-code 1 --severity HIGH,CRITICAL your_image:tag
+      # DISABLED - this is being handled by the trivy workflow
+      # # Rule #9: Integrate Container Scanning Tools
+      # - name: Run Trivy for Vulnerability Scanning
+      #   run: |
+      #     trivy image --exit-code 1 --severity HIGH,CRITICAL your_image:tag
 
       # Rule #10: Check Docker Daemon Logging Level
       - name: Check Docker Daemon Logging Level
