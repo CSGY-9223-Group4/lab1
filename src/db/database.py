@@ -1,6 +1,8 @@
-from ..config import settings
+from contextlib import contextmanager
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
+
+from ..config import settings
 
 # Construct the Database URL
 DATABASE_URL = (
@@ -19,6 +21,7 @@ Base = declarative_base()
 
 
 # Dependency for session management (useful in web frameworks like FastAPI)
+@contextmanager
 def get_db():
     db = SessionLocal()
     try:

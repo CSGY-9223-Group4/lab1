@@ -1,7 +1,6 @@
 from flask import Flask, request, jsonify
 from flask_jwt_extended import JWTManager, get_jwt_identity, jwt_required
-from werkzeug.exceptions import UnsupportedMediaType
-import os
+from werkzeug.exceptions import BadRequest, UnsupportedMediaType
 
 from .exceptions.auth_exception import AuthException
 from .exceptions.user_exists_exception import UserAlreadyExistsException
@@ -24,10 +23,12 @@ def register_user():
         username = request.json.get("username", None)
         password = request.json.get("password", None)
         if not username or not password:
-            return jsonify({"error": "Missing username or password"}), 400
+            raise BadRequest("Missing username or password")
 
         access_token = user_service.register_user(username, password)
         return jsonify(message="User registered", access_token=access_token), 200
+    except BadRequest as e:
+        return jsonify({"error": "Bad request: " + e.get_description()}), 400
     except UnsupportedMediaType as e:
         return jsonify({"error": "Unsupported media type: " + e.get_description()}), 415
     except UserAlreadyExistsException:
@@ -43,10 +44,12 @@ def login():
         username = request.json.get("username", None)
         password = request.json.get("password", None)
         if not username or not password:
-            return jsonify({"error": "Missing username or password"}), 400
+            raise BadRequest("Missing username or password")
 
         access_token = user_service.login(username, password)
         return jsonify(access_token=access_token), 200
+    except BadRequest as e:
+        return jsonify({"error": "Bad request: " + e.get_description()}), 400
     except UnsupportedMediaType as e:
         return jsonify({"error": "Unsupported media type: " + e.get_description()}), 415
     except AuthException:
@@ -72,12 +75,39 @@ def get_notes():
     try:
         # TODO: add user_id to JWT and use it there
         author_id = request.args.get("author_id", None)
-        if not author_id:
-            return jsonify({"error": "Missing author id"}), 400
+        if not author_id or not author_id.isnumeric():
+            raise BadRequest("Missing author id")
+        author_id = int(author_id)
 
         db_notes = note_service.get_notes(author_id)
         notes_list = [note.to_dict() for note in db_notes]
         return jsonify(notes_list)
+    except BadRequest as e:
+        return jsonify({"error": "Bad request: " + e.get_description()}), 400
+    except Exception as e:
+        app.log_exception(e)
+        return jsonify({"error": INTERNAL_SERVER_ERROR}), 500
+
+
+@app.route("/v1/notes/<int:note_id>", methods=["GET"])
+@jwt_required()
+def get_note(note_id: int):
+    try:
+        if note_id < 0:
+            return jsonify({"error": f"Invalid note id {note_id}"})
+        # TODO: add user_id to JWT and use it there
+        author_id = request.args.get("author_id", None)
+        if not author_id or not author_id.isnumeric():
+            raise BadRequest("Missing author id")
+        author_id = int(author_id)
+
+        db_note = note_service.get_note_by_id(author_id, note_id)
+        if not db_note:
+            return jsonify({"error": f"Note with id {note_id} does not exist"}), 404
+
+        return jsonify(db_note.to_dict()), 200
+    except BadRequest as e:
+        return jsonify({"error": "Bad request: " + e.get_description()}), 400
     except Exception as e:
         app.log_exception(e)
         return jsonify({"error": INTERNAL_SERVER_ERROR}), 500
@@ -85,7 +115,7 @@ def get_notes():
 
 @app.route("/v1/notes", methods=["POST"])
 @jwt_required()
-def post_note():
+def create_note():
     try:
         # TODO: apply realistic validation
         note_title = request.json.get("title", None)
@@ -94,12 +124,66 @@ def post_note():
         # TODO: add user_id to JWT and use it there
         author_id = request.json.get("author_id", None)
         if not note_title or not note_text or not author_id:
-            return jsonify({"error": "Missing note title or text or author id"}), 400
+            raise BadRequest("Missing note title or text or author id")
 
-        db_note = note_service.post_note(note_title, note_text, author_id, is_public)
-        return jsonify(db_note.to_dict()), 200
+        db_note = note_service.create_note(note_title, note_text, author_id, is_public)
+        return jsonify(db_note.to_dict()), 201
+    except BadRequest as e:
+        return jsonify({"error": "Bad request: " + e.get_description()}), 400
     except UnsupportedMediaType as e:
         return jsonify({"error": "Unsupported media type: " + e.get_description()}), 415
+    except Exception as e:
+        app.log_exception(e)
+        return jsonify({"error": INTERNAL_SERVER_ERROR}), 500
+
+
+@app.route("/v1/notes/<int:note_id>", methods=["PUT"])
+@jwt_required()
+def update_note(note_id: int):
+    try:
+        # TODO: apply realistic validation
+        note_title = request.json.get("title", None)
+        note_text = request.json.get("text", None)
+        is_public = request.json.get("public", False)
+        if note_id < 0:
+            return jsonify({"error": f"Invalid note id {note_id}"})
+        # TODO: add user_id to JWT and use it there
+        author_id = request.json.get("author_id", None)
+        if not note_title or not note_text or not author_id:
+            raise BadRequest("Missing note title or text or author id")
+
+        db_note = note_service.update_note(
+            note_id, note_title, note_text, author_id, is_public
+        )
+        if not db_note:
+            return jsonify({"error": f"Note with id {note_id} does not exist"}), 404
+        return jsonify(db_note.to_dict()), 200
+    except BadRequest as e:
+        return jsonify({"error": "Bad request: " + e.get_description()}), 400
+    except UnsupportedMediaType as e:
+        return jsonify({"error": "Unsupported media type: " + e.get_description()}), 415
+    except Exception as e:
+        app.log_exception(e)
+        return jsonify({"error": INTERNAL_SERVER_ERROR}), 500
+
+
+@app.route("/v1/notes/<int:note_id>", methods=["DELETE"])
+@jwt_required()
+def delete_note(note_id: int):
+    try:
+        if note_id < 0:
+            return jsonify({"error": f"Invalid note id {note_id}"})
+        # TODO: add user_id to JWT and use it there
+        author_id = request.json.get("author_id", None)
+        if not author_id:
+            raise BadRequest("Missing author id")
+
+        db_note = note_service.delete_note(author_id, note_id)
+        if not db_note:
+            return jsonify({"error": f"Note with id {note_id} does not exist"}), 404
+        return jsonify(message=f"Successfully deleted note {note_id}"), 200
+    except BadRequest as e:
+        return jsonify({"error": "Bad request: " + e.get_description()}), 400
     except Exception as e:
         app.log_exception(e)
         return jsonify({"error": INTERNAL_SERVER_ERROR}), 500
