@@ -1,0 +1,41 @@
+name: Security Check
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  security-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.12'  # Specify Python version for this project
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8  # Install any necessary packages
+
+      - name: Run Security Check
+        id: security_check
+        run: |
+          # Replace with your security check script
+          python .github/scripts/security_check.py
+
+      - name: Create GitHub Issue on Failure
+        if: steps.security_check.outcome == 'failure'
+        uses: peter-evans/create-issue-from-file@v3
+        with:
+          title: "Security Issue Detected: Bearer Token Exposure"
+          content-file: issue-details.md
+          labels: security
