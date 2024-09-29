@@ -93,8 +93,12 @@ jobs:
       # Rule #11: Run Docker in Rootless Mode
       - name: Check for Rootless Docker
         run: |
-          if [ "$(docker info | grep 'rootless')" != "rootless: true" ]; then
+          if ! docker info | grep -q 'rootless: true'; then
             echo "Warning: Docker is not running in rootless mode."
+            echo "Consider switching to rootless mode for improved security."
+            exit 1
+          else
+            echo "Docker is running in rootless mode."
           fi
 
       # Rule #12: Utilize Docker Secrets
