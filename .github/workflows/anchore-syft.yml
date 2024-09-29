@@ -30,10 +30,10 @@ jobs:
     - name: List SBOM Output Directory
       run: |
         echo "Contents of the SBOM action output directory:"
-        ls -al /tmp/sbom-action-OGhrNU || true
+        ls -al /tmp/sbom-action-* || true
 
     - name: Upload SBOM artifact
       uses: actions/upload-artifact@v4
       with:
         name: sbom
-        path: /tmp/sbom-action-OGhrNU/image.spdx.json # Ensure this is the correct path
+        path: /tmp/sbom-action-*/image.spdx.json # Use wildcard to match the dynamic directory
