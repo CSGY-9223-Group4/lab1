@@ -47,4 +47,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
           name: sbom
-          path: image.spdx.json
+          path: /tmp/sbom-action-OGhrNU/image.spdx.json # Updated path
