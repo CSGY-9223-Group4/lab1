@@ -25,6 +25,11 @@ Contributions are made to this repo via Issues and Pull Requests (PRs). A few ge
 - We work hard to makes sure issues are handled in a timely manner but, depending on the impact, it could take a while to investigate the root cause. A friendly ping in the comment thread to the submitter or a contributor can help draw attention if your issue is blocking.
 - If you've never contributed before, see [the first timer's guide provided by Auth0](https://auth0.com/blog/a-first-timers-guide-to-an-open-source-project/) for resources and tips on how to get started.
 
+Please run the [black linter](https://github.com/psf/black) before creating a PR, e.g. run this in project root directory:
+```bash
+$ black .
+```
+
 ### Issues
 
 Issues should be used to report problems with the library, request a new feature, or to discuss potential changes before a PR is created. When you create a new Issue, a template will be loaded that will guide you through collecting and providing the information we need to investigate.
