@@ -19,13 +19,11 @@ on:
 
 permissions:
   contents: write
-  artifacts: write # Required to upload artifacts
   
 jobs:
   Anchore-Build-Scan:
     permissions:
       contents: write # required to upload to the Dependency submission API
-      artifacts: write # Required to upload artifacts
       
     runs-on: ubuntu-latest
     steps:
