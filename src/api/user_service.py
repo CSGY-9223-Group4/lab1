@@ -12,10 +12,12 @@ def register_user(username: str, password: str) -> str:
     @return: An access token for the new user.
     """
     user = create_user(username, password)
-    return create_access_token(identity={
-        "username": user.username,
-        "user_id": user.user_id,
-    })
+    return create_access_token(
+        identity={
+            "username": user.username,
+            "user_id": user.user_id,
+        }
+    )
 
 
 def login(username: str, password: str) -> str:
@@ -27,10 +29,12 @@ def login(username: str, password: str) -> str:
     @return: An access token for the user.
     """
     user = check_password(username, password)
-    return create_access_token(identity={
-        "username": user.username,
-        "user_id": user.user_id,
-    })
+    return create_access_token(
+        identity={
+            "username": user.username,
+            "user_id": user.user_id,
+        }
+    )
 
 
 def get_user_id_from_token(token) -> int:
