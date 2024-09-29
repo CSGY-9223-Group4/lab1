@@ -40,6 +40,9 @@ jobs:
         artifact-name: image.spdx.json
         dependency-snapshot: true
 
+    - name: List files
+      run: ls -al
+
     - name: Upload SBOM artifact
       uses: actions/upload-artifact@v4
       with:
