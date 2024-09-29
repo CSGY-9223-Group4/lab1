@@ -53,7 +53,7 @@ $ curl -H "Authorization: Bearer $AT" -H "Content-Type: application/json" http:/
   }
 ]
 
-# update the secret
+# update the note
 $ curl -H "Authorization: Bearer $AT" -H "Content-Type: application/json" http://localhost:8000/v1/notes/4 -X PUT -H 'Content-Type: application/json' --data '{"title": "CONFIDENTIAL", "text": "updating my secret"}'
 [
   {
@@ -67,7 +67,7 @@ $ curl -H "Authorization: Bearer $AT" -H "Content-Type: application/json" http:/
   }
 ]
 
-# creating a new secret
+# creating a new note
 $ curl -H "Authorization: Bearer $AT" -H "Content-Type: application/json" http://localhost:8000/v1/notes -X POST -H 'Content-Type: application/json' --data '{"title": "CONFIDENTIAL", "text": "new secret!!"}'
 {
   "author": "kevin.tarta",
@@ -79,7 +79,7 @@ $ curl -H "Authorization: Bearer $AT" -H "Content-Type: application/json" http:/
   "updated_at": "2024-09-28T18:14:54"
 }
 
-# deleting a secret
+# deleting a note
 $ curl -H "Authorization: Bearer $AT" -H "Content-Type: application/json" http://localhost:8000/v1/notes/7 -X DELETE
 {
   "message": "Successfully deleted note 7"
