@@ -3,8 +3,8 @@ from ..db import notes as NotesDB
 from ..models.note import Note
 
 
-def get_notes(author_id: int) -> Sequence[Note]:
-    return NotesDB.get_notes_for_user(author_id)
+def get_notes(author_id: int, page: int = 1, page_size: int = 10) -> Sequence[Note]:
+    return NotesDB.get_notes_for_user(author_id, page, page_size)
 
 
 def get_note_by_id(author_id: int, note_id: int) -> Note | None:

@@ -5,21 +5,29 @@ from ..models.note import Note
 from .database import get_db
 
 
-def get_notes_for_user(author_id: int) -> Sequence[Note]:
+def get_notes_for_user(
+    author_id: int, page: int = 1, page_size: int = 10
+) -> Sequence[Note]:
     """
-    Returns all notes that are public or were created by the user with the given ID.
+    Returns a page of notes that are public or were created by the user with the given ID.
     @param author_id: The ID of the user whose notes to retrieve.
+    @param page: The page number to retrieve.
+    @param page_size: The number of notes per page.
     @return: A sequence of notes.
     """
     with get_db() as db:
+        offset = (page - 1) * page_size
         return (
             db.execute(
-                select(Note).where(
+                select(Note)
+                .where(
                     or_(
                         Note.is_public == True,
                         Note.author_id == author_id,
                     )
                 )
+                .limit(page_size)
+                .offset(offset)
             )
             .scalars()
             .all()

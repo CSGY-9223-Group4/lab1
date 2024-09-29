@@ -14,6 +14,7 @@ app.config["JWT_SECRET_KEY"] = settings.JWT_SECRET_KEY
 jwt = JWTManager(app)
 
 INTERNAL_SERVER_ERROR = "Internal Server Error"
+MAX_PAGE_SIZE = 100
 
 
 @app.route("/v1/register_user", methods=["POST"])
@@ -75,9 +76,16 @@ def get_notes():
     try:
         user_identity = get_jwt_identity()
         author_id = user_service.get_user_id_from_token(user_identity)
-        db_notes = note_service.get_notes(author_id)
+        page = int(request.args.get("page", 1))
+        page_size = int(request.args.get("page_size", 10))
+        if page_size > MAX_PAGE_SIZE or page_size < 1 or page < 1:
+            raise ValueError("Invalid page or page_size")
+
+        db_notes = note_service.get_notes(author_id, page, page_size)
         notes_list = [note.to_dict() for note in db_notes]
         return jsonify(notes_list)
+    except ValueError as e:
+        return jsonify({"error": "Invalid page or page_size"}), 400
     except BadRequest as e:
         return jsonify({"error": "Bad request: " + e.get_description()}), 400
     except AuthException:
