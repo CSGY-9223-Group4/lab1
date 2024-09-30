@@ -73,9 +73,13 @@ jobs:
       - name: Check for Read-Only Filesystem
         run: |
           if grep -q 'read_only: false' **/*.yml; then
-            echo "Error: Read-only filesystem is not set."
+            echo "Error: Read-only filesystem is set to false."
+            echo "Recommended setting: 'read_only: true' for enhanced security."
             exit 1
+          else
+            echo "Read-only filesystem is correctly configured."
           fi
+
 
       # DISABLED - this is being handled by the trivy workflow
       # # Rule #9: Integrate Container Scanning Tools
