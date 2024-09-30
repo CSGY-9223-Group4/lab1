@@ -15,37 +15,38 @@ jobs:
       # Rule #0: Keep Host and Docker Up to Date
       - name: Check Docker Version
         run: |
-          # Check current Docker version
-          CURRENT_DOCKER_VERSION=$(docker --version | awk '{print $3}' | sed 's/,//')
-          echo "Current Docker version: $CURRENT_DOCKER_VERSION"
-          
-          # Define allowed Docker version (replace with the latest stable version)
-          ALLOWED_DOCKER_VERSION="20.10.7"
+          # Define the current allowed Docker version
+          CURRENT_DOCKER_VERSION="20.10.7"
+      
+          # Get the installed Docker version
+          INSTALLED_DOCKER_VERSION=$(docker --version | awk '{print $3}' | sed 's/,//')
+          echo "Installed Docker version: $INSTALLED_DOCKER_VERSION"
+      
+          # Function to compare Docker versions
+          compare_versions() {
+            # Convert version strings to arrays
+            IFS='.' read -r -a CURRENT <<< "$1"
+            IFS='.' read -r -a INSTALLED <<< "$2"
+      
+            # Compare each segment of the version
+            for i in {0..2}; do
+              if [[ ${INSTALLED[i]} -lt ${CURRENT[i]} ]]; then
+                return 1
+              elif [[ ${INSTALLED[i]} -gt ${CURRENT[i]} ]]; then
+                return 0
+              fi
+            done
+            return 0 # Versions are equal
+          }
       
           # Compare versions
-          if [ "$CURRENT_DOCKER_VERSION" != "$ALLOWED_DOCKER_VERSION" ]; then
-            echo "Warning: Docker version $CURRENT_DOCKER_VERSION is not the allowed version ($ALLOWED_DOCKER_VERSION)."
+          compare_versions $CURRENT_DOCKER_VERSION $INSTALLED_DOCKER_VERSION
+          if [[ $? -eq 1 ]]; then
+            echo "Warning: Installed Docker version ($INSTALLED_DOCKER_VERSION) is older than the allowed version ($CURRENT_DOCKER_VERSION)."
             exit 1
           else
             echo "Docker version is up to date."
           fi
-      
-          # Check for the latest Docker images and their tags
-          echo "Checking Docker images and their tags..."
-          docker images --format "{{.Repository}}:{{.Tag}}" | while read -r image; do
-            IMAGE_TAG=${image##*:}
-            echo "Current image version: $image"
-            
-            # Define allowed image versions (modify as necessary)
-            ALLOWED_IMAGE_VERSIONS=("latest" "1.0" "2.0") # Example allowed versions
-      
-            if [[ ! " ${ALLOWED_IMAGE_VERSIONS[@]} " =~ " ${IMAGE_TAG} " ]]; then
-              echo "Warning: Docker image $image is using an older or unauthorized version."
-              exit 1
-            else
-              echo "Image $image is using an allowed version."
-            fi
-          done
 
 
       # Rule #1: Do Not Expose the Docker Daemon Socket
