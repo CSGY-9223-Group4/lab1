@@ -65,9 +65,31 @@ jobs:
       # Rule #7: Limit Resources
       - name: Check Resource Limits
         run: |
-          if ! grep -q 'mem_limit:' **/*.yml; then
-            echo "Warning: No memory limits defined."
+          if ls **/*.yml 1> /dev/null 2>&1; then
+            # Check for memory limits
+            if ! grep -q 'mem_limit:' **/*.yml; then
+              echo "Warning: No memory limits defined."
+            else
+              echo "Memory limits are defined."
+            fi
+            
+            # Check for CPU limits
+            if ! grep -q 'cpu_limit:' **/*.yml; then
+              echo "Warning: No CPU limits defined."
+            else
+              echo "CPU limits are defined."
+            fi
+            
+            # Check for other resource limits (e.g., `ulimits`)
+            if ! grep -q 'ulimits:' **/*.yml; then
+              echo "Warning: No ulimits defined."
+            else
+              echo "Ulimits are defined."
+            fi
+          else
+            echo "Warning: No YAML files found to check for resource limits."
           fi
+
 
       # Rule #8: Set Filesystem and Volumes to Read-Only
       - name: Check for Read-Only Filesystem
