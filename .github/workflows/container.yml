@@ -72,7 +72,7 @@ jobs:
       # Rule #8: Set Filesystem and Volumes to Read-Only
       - name: Check for Read-Only Filesystem
         run: |
-          # Check if there are any YAML files
+          # Check if there are any YAML files in the repository
           if ls **/*.yml 1> /dev/null 2>&1; then
             # Check for 'read_only: false' in YAML files
             if grep -q 'read_only: false' **/*.yml; then
@@ -86,6 +86,7 @@ jobs:
             echo "Warning: No YAML files found to check for read-only settings."
           fi
         shell: /usr/bin/bash -e {0}
+
 
 
       # DISABLED - this is being handled by the trivy workflow
