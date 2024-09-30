@@ -51,9 +51,31 @@ jobs:
       # Rule #5: Be Mindful of Inter-Container Connectivity
       - name: Check for Custom Network Usage
         run: |
-          if ! grep -q 'networks:' **/*.yml; then
-            echo "Warning: Custom Docker networks are not used."
+          if ls **/*.yml 1> /dev/null 2>&1; then
+            # Check for custom networks
+            if ! grep -q 'networks:' **/*.yml; then
+              echo "Warning: Custom Docker networks are not used. Consider defining networks to isolate containers."
+            else
+              echo "Custom Docker networks are defined."
+            fi
+      
+            # Check for the use of bridge network
+            if grep -q 'network_mode: bridge' **/*.yml; then
+              echo "Bridge network is being used. Ensure it is appropriate for your use case."
+            else
+              echo "Warning: Bridge network is not explicitly defined. Consider defining a custom network."
+            fi
+      
+            # Check for exposed ports
+            if grep -q 'ports:' **/*.yml; then
+              echo "Ports are exposed. Ensure that only necessary ports are exposed."
+            else
+              echo "Warning: No ports are exposed. Review to ensure required communication is allowed."
+            fi
+          else
+            echo "Warning: No YAML files found to check for network configurations."
           fi
+
 
       # Rule #6: Use Linux Security Module
       - name: Check for Security Profiles
