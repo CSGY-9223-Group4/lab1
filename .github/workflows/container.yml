@@ -87,8 +87,13 @@ jobs:
       - name: Check Docker Daemon Logging Level
         run: |
           if ! grep -q '"log-level": "info"' /etc/docker/daemon.json; then
-            echo "Warning: Docker daemon logging level is not set to info."
+            echo "Error: Docker daemon logging level is not set to info."
+            echo "Recommended setting: \"log-level\": \"info\""
+            exit 1
+          else
+            echo "Docker daemon logging level is set to info."
           fi
+
 
       # Rule #11: Run Docker in Rootless Mode
       - name: Check for Rootless Docker
