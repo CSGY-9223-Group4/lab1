@@ -1,6 +1,7 @@
 services:
   web:
     build: .
+    restart: on-failure:5
     environment:
       DB_HOST: db
       DB_PORT: 3306
@@ -15,6 +16,20 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    cpus: 2.0
+    mem_limit: 512m
+    memswap_limit: 512m
+    privileged: false
+    ulimits:
+      nproc: 10
+      nofile:
+        soft: 1024
+        hard: 1024
   db:
     image: mysql:latest
     restart: on-failure
