@@ -11,12 +11,42 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
-      
+        
       # Rule #0: Keep Host and Docker Up to Date
       - name: Check Docker Version
         run: |
-          docker --version
-          # Optionally, add checks against a list of allowed versions
+          # Check current Docker version
+          CURRENT_DOCKER_VERSION=$(docker --version | awk '{print $3}' | sed 's/,//')
+          echo "Current Docker version: $CURRENT_DOCKER_VERSION"
+          
+          # Define allowed Docker version (replace with the latest stable version)
+          ALLOWED_DOCKER_VERSION="20.10.7"
+      
+          # Compare versions
+          if [ "$CURRENT_DOCKER_VERSION" != "$ALLOWED_DOCKER_VERSION" ]; then
+            echo "Warning: Docker version $CURRENT_DOCKER_VERSION is not the allowed version ($ALLOWED_DOCKER_VERSION)."
+            exit 1
+          else
+            echo "Docker version is up to date."
+          fi
+      
+          # Check for the latest Docker images and their tags
+          echo "Checking Docker images and their tags..."
+          docker images --format "{{.Repository}}:{{.Tag}}" | while read -r image; do
+            IMAGE_TAG=${image##*:}
+            echo "Current image version: $image"
+            
+            # Define allowed image versions (modify as necessary)
+            ALLOWED_IMAGE_VERSIONS=("latest" "1.0" "2.0") # Example allowed versions
+      
+            if [[ ! " ${ALLOWED_IMAGE_VERSIONS[@]} " =~ " ${IMAGE_TAG} " ]]; then
+              echo "Warning: Docker image $image is using an older or unauthorized version."
+              exit 1
+            else
+              echo "Image $image is using an allowed version."
+            fi
+          done
+
 
       # Rule #1: Do Not Expose the Docker Daemon Socket
       - name: Check for Docker Socket Exposure
