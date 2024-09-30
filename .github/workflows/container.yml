@@ -72,12 +72,16 @@ jobs:
       # Rule #8: Set Filesystem and Volumes to Read-Only
       - name: Check for Read-Only Filesystem
         run: |
-          if grep -q 'read_only: false' **/*.yml; then
-            echo "Error: Read-only filesystem is set to false."
-            echo "Recommended setting: 'read_only: true' for enhanced security."
-            exit 1
+          if ls **/*.yml 1> /dev/null 2>&1; then
+            if grep -q 'read_only: false' **/*.yml; then
+              echo "Error: Read-only filesystem is set to false."
+              echo "Recommended setting: 'read_only: true' for enhanced security."
+              exit 1
+            else
+              echo "Read-only filesystem is correctly configured."
+            fi
           else
-            echo "Read-only filesystem is correctly configured."
+            echo "No YAML files found to check for read-only settings."
           fi
 
 
