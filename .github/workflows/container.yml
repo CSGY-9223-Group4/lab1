@@ -77,13 +77,13 @@ jobs:
               echo "Error: Read-only filesystem is set to false."
               echo "Recommended setting: 'read_only: true' for enhanced security."
               exit 1
-            else
-              echo "Read-only filesystem is correctly configured."
             fi
+            echo "Read-only filesystem is correctly configured."
           else
             echo "No YAML files found to check for read-only settings."
           fi
         shell: /usr/bin/bash -e {0}
+
 
       # DISABLED - this is being handled by the trivy workflow
       # # Rule #9: Integrate Container Scanning Tools
