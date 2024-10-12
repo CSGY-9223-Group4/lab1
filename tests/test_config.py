@@ -37,6 +37,3 @@ def test_settings_jwt_secret():
     os.environ["JWT_SECRET"] = "super_secret_key"
     settings = Settings()
     assert settings.JWT_SECRET_KEY == "super_secret_key"
-
-def test_fail():
-    assert False
