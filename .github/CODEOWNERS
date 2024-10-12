@@ -59,4 +59,4 @@
 #/apps/github @doctocat
 
 # For all security check workflows requires the Security team's review and approval.
-.github/workflows/  @CSGY-9233-Group4/Security
+.github/workflows/ @CSGY-9223-Group4/Security
