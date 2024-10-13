@@ -37,10 +37,12 @@ jobs:
         pip install -r requirements-dev.txt
 
     - name: Format with Black
+      id: black
       run: |
         black --check .
 
     - name: Test with pytest
+      id: tests
       run: |
         pytest
 
