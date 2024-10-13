@@ -178,7 +178,7 @@ jobs:
       # Rule #10: Check Docker Daemon Logging Level
       - name: Check Docker Daemon Logging Level
         run: |
-          if ! grep -q '"log-level": "info"' /etc/docker/daemon.json; then
+          if ! grep -q '"log-level": "info"' ~/.config/docker/daemon.json; then
             echo "Error: Docker daemon logging level is not set to info."
             echo "Recommended setting: \"log-level\": \"info\""
             exit 1
