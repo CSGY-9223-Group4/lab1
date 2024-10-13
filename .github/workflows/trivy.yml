@@ -15,7 +15,9 @@ on:
     - cron: '29 13 * * 3'
 
 permissions:
-  contents: read
+  contents: read    # Allows reading repository contents
+  statuses: write   # Allows writing commit statuses
+
 
 jobs:
   build:
