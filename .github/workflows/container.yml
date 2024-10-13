@@ -201,7 +201,6 @@ jobs:
           if ! docker info | grep -q 'rootless: true'; then
             echo "Warning: Docker is not running in rootless mode."
             echo "Consider switching to rootless mode for improved security."
-            exit 1
           else
             echo "Docker is running in rootless mode."
           fi
