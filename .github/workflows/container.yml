@@ -5,6 +5,11 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read    # Allows reading repository contents
+  statuses: write   # Allows writing commit statuses
+
+
 jobs:
   lint:
     runs-on: ubuntu-latest
