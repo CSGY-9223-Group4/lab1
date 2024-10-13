@@ -6,7 +6,8 @@ on:
 
 permissions:
   contents: write # Required to upload to the Dependency submission API
-
+  statuses: write   # Allows writing commit statuses
+  
 jobs:
   Anchore-Build-Scan:
     permissions:
