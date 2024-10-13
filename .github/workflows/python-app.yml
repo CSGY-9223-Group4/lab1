@@ -51,7 +51,7 @@ jobs:
         pytest
 
     - name: Run pip-audit
-      run: pip-audit --fail-on=high  # Adjust fail-on level as needed
+      run: pip-audit -v
       
 
     - name: Set commit status for Commit Request review
