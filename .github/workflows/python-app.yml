@@ -35,7 +35,10 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install -r requirements-dev.txt
-        pip install --upgrade pip-audit  # Ensure pip-audit is up to date
+        pip install pip-audit==2.2.0
+
+    - name: Check pip-audit version
+      run: pip show pip-audit
 
     - name: Format with Black # code format check
       id: black
