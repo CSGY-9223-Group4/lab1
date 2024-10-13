@@ -35,8 +35,9 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install -r requirements-dev.txt
+        pip install pip-audit  # Install pip-audit for auditing  
 
-    - name: Format with Black
+    - name: Format with Black # code format check
       id: black
       run: |
         black --check .
@@ -45,6 +46,10 @@ jobs:
       id: tests
       run: |
         pytest
+
+    - name: Run pip-audit
+      run: pip-audit --fail-on=high  # Adjust fail-on level as needed
+      
 
     - name: Set commit status for Commit Request review
       run: |
