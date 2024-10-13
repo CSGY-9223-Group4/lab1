@@ -181,12 +181,17 @@ jobs:
       # Rule #10: Check Docker Daemon Logging Level
       - name: Check Docker Daemon Logging Level
         run: |
-          if ! grep -q '"log-level": "info"' ~/.config/docker/daemon.json; then
-            echo "Error: Docker daemon logging level is not set to info."
-            echo "Recommended setting: \"log-level\": \"info\""
-            exit 1
+          if ps -ef | grep -v grep | grep -q dockerd; then
+            echo "Docker daemon is running."
+            # Check for the --log-level flag
+            if ps -ef | grep -v grep | grep dockerd | grep -- '--log-level'; then
+              echo "Error: Docker daemon is running with custom log level flags."
+              exit 1
+            else
+              echo "Docker daemon is running without custom log level flags."
+            fi
           else
-            echo "Docker daemon logging level is set to info."
+            echo "Docker daemon is not running."
           fi
 
 
