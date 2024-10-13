@@ -7,10 +7,13 @@ name: trivy
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - '**'  # This will match all branches
+      
   pull_request:
-    # The branches below must be a subset of the branches above
-    branches: [ "main" ]
+    branches:
+      - main
+      
   schedule:
     - cron: '29 13 * * 3'
 
