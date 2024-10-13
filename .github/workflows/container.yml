@@ -3,7 +3,8 @@ name: Docker Security Checks
 on:
   push:
     branches:
-      - main
+      - '**'  # This will match all branches
+      
   pull_request:
     branches:
       - "main"
