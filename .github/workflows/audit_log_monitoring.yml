@@ -1,0 +1,26 @@
+name: Audit Log Monitoring
+
+on:
+  schedule:
+    - cron: '0 23 * * *'  # This is 6 PM EST (UTC-5), adjust for daylight saving time if needed
+
+jobs:
+  run-audit-log-monitoring:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'  # Specify the Python version you need
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt  # Ensure you have a requirements.txt in the root or adjust path
+
+      - name: Run the audit log monitoring script
+        run: |
+          python main/security/webhook_listener.py  # Updated path to the script
