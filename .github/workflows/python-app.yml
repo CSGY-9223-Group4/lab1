@@ -35,7 +35,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install -r requirements-dev.txt
-        pip install pip-audit  # Install pip-audit for auditing  
+        pip install --upgrade pip-audit  # Ensure pip-audit is up to date
 
     - name: Format with Black # code format check
       id: black
