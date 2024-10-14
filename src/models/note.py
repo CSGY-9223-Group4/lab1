@@ -45,3 +45,14 @@ class Note(Base):
             "created_at": self.created_at.isoformat(),
             "updated_at": self.updated_at.isoformat(),
         }
+
+    def __eq__(self, other):
+        return (
+            self.note_id == other.note_id
+            and self.note_title == other.note_title
+            and self.note_text == other.note_text
+            and self.is_public == other.is_public
+            and self.author_id == other.author_id
+            and self.created_at == other.created_at
+            and self.updated_at == other.updated_at
+        )
