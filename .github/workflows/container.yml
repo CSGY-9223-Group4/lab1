@@ -180,6 +180,10 @@ jobs:
       #     trivy image --exit-code 1 --severity HIGH,CRITICAL your_image:tag
 
       # Rule #10: Check Docker Daemon Logging Level
+
+      - name: Locate Docker Daemon
+        run: which dockerd # show the dasemon's location.
+
       - name: Check Docker Daemon Logging Level
         run: |
           if ps -ef | grep -v grep | grep -q dockerd; then
