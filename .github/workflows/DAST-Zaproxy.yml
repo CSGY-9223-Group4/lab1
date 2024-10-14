@@ -36,7 +36,7 @@ jobs:
           docker run --network=host owasp/zap2docker-stable zap.sh -cmd -quickurl $APP_URL -quickout report.html -quickfuzz
 
       - name: Upload ZAP report
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v4
         with:
           name: zap-report
           path: report.html
