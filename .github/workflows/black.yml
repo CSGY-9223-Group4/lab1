@@ -3,7 +3,8 @@ name: Black Formatter
 on:
   push:
     branches:
-      - main  # Default branch
+      - '**'  # This will match all branches
+      
   pull_request:
     branches:
       - main
