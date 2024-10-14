@@ -5,17 +5,24 @@ from werkzeug.exceptions import BadRequest, UnsupportedMediaType
 from .exceptions.auth_exception import AuthException
 from .exceptions.user_exists_exception import UserAlreadyExistsException
 
-from .api import note_service, user_service
+from .api.note_service import NoteService, note_service
+from .api.user_service import UserService, user_service
 from .config import settings
-
-
-app = Flask(__name__)
-app.config["JWT_SECRET_KEY"] = settings.JWT_SECRET_KEY
-jwt = JWTManager(app)
 
 INTERNAL_SERVER_ERROR = "Internal Server Error"
 MAX_PAGE_SIZE = 100
 
+
+def create_app(user_serv: UserService, note_serv: NoteService):
+    app = Flask(__name__)
+    app.config["JWT_SECRET_KEY"] = settings.JWT_SECRET_KEY
+    
+    app.user_service = user_serv
+    app.note_service = note_serv
+    return app
+
+app = create_app(user_service, note_service)
+jwt = JWTManager(app)
 
 @app.route("/v1/register_user", methods=["POST"])
 def register_user():
@@ -26,7 +33,7 @@ def register_user():
         if not username or not password:
             raise BadRequest("Missing username or password")
 
-        access_token = user_service.register_user(username, password)
+        access_token = app.user_service.register_user(username, password)
         return jsonify(message="User registered", access_token=access_token), 200
     except BadRequest as e:
         return jsonify({"error": "Bad request: " + e.get_description()}), 400
@@ -47,7 +54,7 @@ def login():
         if not username or not password:
             raise BadRequest("Missing username or password")
 
-        access_token = user_service.login(username, password)
+        access_token = app.user_service.login(username, password)
         return jsonify(access_token=access_token), 200
     except BadRequest as e:
         return jsonify({"error": "Bad request: " + e.get_description()}), 400
@@ -75,13 +82,13 @@ def protected():
 def get_notes():
     try:
         user_identity = get_jwt_identity()
-        author_id = user_service.get_user_id_from_token(user_identity)
+        author_id = app.user_service.get_user_id_from_token(user_identity)
         page = int(request.args.get("page", 1))
         page_size = int(request.args.get("page_size", 10))
         if page_size > MAX_PAGE_SIZE or page_size < 1 or page < 1:
             raise ValueError("Invalid page or page_size")
 
-        db_notes = note_service.get_notes(author_id, page, page_size)
+        db_notes = app.note_service.get_notes(author_id, page, page_size)
         notes_list = [note.to_dict() for note in db_notes]
         return jsonify(notes_list)
     except ValueError as e:
@@ -100,11 +107,11 @@ def get_notes():
 def get_note(note_id: int):
     try:
         user_identity = get_jwt_identity()
-        author_id = user_service.get_user_id_from_token(user_identity)
+        author_id = app.user_service.get_user_id_from_token(user_identity)
         if note_id < 0:
             return jsonify({"error": f"Invalid note id {note_id}"})
 
-        db_note = note_service.get_note_by_id(author_id, note_id)
+        db_note = app.note_service.get_note_by_id(author_id, note_id)
         if not db_note:
             return jsonify({"error": f"Note with id {note_id} does not exist"}), 404
 
@@ -123,7 +130,7 @@ def get_note(note_id: int):
 def create_note():
     try:
         user_identity = get_jwt_identity()
-        author_id = user_service.get_user_id_from_token(user_identity)
+        author_id = app.user_service.get_user_id_from_token(user_identity)
 
         # TODO: apply realistic validation
         note_title = request.json.get("title", None)
@@ -133,7 +140,7 @@ def create_note():
         if not note_title or not note_text:
             raise BadRequest("Missing note title or text")
 
-        db_note = note_service.create_note(note_title, note_text, author_id, is_public)
+        db_note = app.note_service.create_note(note_title, note_text, author_id, is_public)
         return jsonify(db_note.to_dict()), 201
     except BadRequest as e:
         return jsonify({"error": "Bad request: " + e.get_description()}), 400
@@ -151,7 +158,7 @@ def create_note():
 def update_note(note_id: int):
     try:
         user_identity = get_jwt_identity()
-        author_id = user_service.get_user_id_from_token(user_identity)
+        author_id = app.user_service.get_user_id_from_token(user_identity)
 
         # TODO: apply realistic validation
         note_title = request.json.get("title", None)
@@ -162,7 +169,7 @@ def update_note(note_id: int):
         if not note_title or not note_text:
             raise BadRequest("Missing note title or text")
 
-        db_note = note_service.update_note(
+        db_note = app.note_service.update_note(
             note_id, note_title, note_text, author_id, is_public
         )
         if not db_note:
@@ -184,12 +191,12 @@ def update_note(note_id: int):
 def delete_note(note_id: int):
     try:
         user_identity = get_jwt_identity()
-        author_id = user_service.get_user_id_from_token(user_identity)
+        author_id = app.user_service.get_user_id_from_token(user_identity)
 
         if note_id < 0:
             return jsonify({"error": f"Invalid note id {note_id}"})
 
-        db_note = note_service.delete_note(author_id, note_id)
+        db_note = app.note_service.delete_note(author_id, note_id)
         if not db_note:
             return jsonify({"error": f"Note with id {note_id} does not exist"}), 404
         return jsonify(message=f"Successfully deleted note {note_id}"), 200
