@@ -39,7 +39,9 @@ jobs:
           docker build -t docker.io/csgy-9223-group4/lab1:${{ github.sha }} .
 
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@7b7aa264d83dc58691451798b4d117d53d21edfe
+        #uses: aquasecurity/trivy-action@7b7aa264d83dc58691451798b4d117d53d21edfe
+        uses: aquasecurity/trivy-action@v0.2.0  # stable version
+        
         with:
           image-ref: 'docker.io/csgy-9223-group4/lab1:${{ github.sha }}'
           format: 'template'
