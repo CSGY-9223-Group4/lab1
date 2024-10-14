@@ -99,3 +99,8 @@ jobs:
         # This step uses the identity token to provision an ephemeral certificate
         # against the sigstore community Fulcio instance.
         run: echo "${TAGS}" | xargs -I {} cosign sign --yes {}@${DIGEST}
+
+      # Run tests with INFO logging
+      - name: Run tests with INFO logging
+        run: |
+          docker run --rm -e LOG_LEVEL=info ${{ steps.meta.outputs.tags }} pytest
