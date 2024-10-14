@@ -1,0 +1,42 @@
+name: ZAP Fuzzing
+
+on:
+  push:
+    branches:
+      - "**"
+
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  fuzzing:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Set up ZAP
+        run: |
+          docker pull owasp/zap2docker-stable
+          docker run -u zap -t owasp/zap2docker-stable zap.sh -daemon -port 8080 -host 0.0.0.0
+
+      - name: Wait for ZAP to start
+        run: |
+          sleep 30  # Wait for ZAP to start
+
+      - name: Define application URL
+        id: app_url
+        run: echo "APP_URL=http://localhost:8000" >> $GITHUB_ENV    # Replace with your app URL
+
+      - name: Fuzzing
+        run: |
+          echo "Testing URL: $APP_URL"
+          docker run --network=host owasp/zap2docker-stable zap.sh -cmd -quickurl $APP_URL -quickout report.html -quickfuzz
+
+      - name: Upload ZAP report
+        uses: actions/upload-artifact@v2
+        with:
+          name: zap-report
+          path: report.html
