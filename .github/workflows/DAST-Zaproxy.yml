@@ -19,9 +19,12 @@ jobs:
 
       - name: Set up ZAP
         run: |
-          docker pull owasp/zap2docker-stable
-          docker run -u zap -t owasp/zap2docker-stable zap.sh -daemon -port 8080 -host 0.0.0.0
-
+          #docker pull owasp/zap2docker-stable
+          #docker run -u zap -t owasp/zap2docker-stable zap.sh -daemon -port 8080 -host 0.0.0.0
+          
+          docker pull zaproxy/zap-stable
+          docker run -u zap -t zaproxy/zap-stable zap.sh -daemon -port 8080 -host 0.0.0.0
+          
       - name: Wait for ZAP to start
         run: |
           sleep 30  # Wait for ZAP to start
