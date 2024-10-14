@@ -1,9 +1,9 @@
 name: ZAP Fuzzing
 
 on:
-  push:
-    branches:
-      - "**"
+  #push:
+  #  branches:
+  #    - "**"
 
   pull_request:
     branches:
@@ -19,9 +19,6 @@ jobs:
 
       - name: Set up ZAP
         run: |
-          #docker pull owasp/zap2docker-stable
-          #docker run -u zap -t owasp/zap2docker-stable zap.sh -daemon -port 8080 -host 0.0.0.0
-          
           docker pull zaproxy/zap-stable
           docker run -u zap -t zaproxy/zap-stable zap.sh -daemon -port 8080 -host 0.0.0.0
           
@@ -31,12 +28,12 @@ jobs:
 
       - name: Define application URL
         id: app_url
-        run: echo "APP_URL=http://localhost:8000" >> $GITHUB_ENV    # Replace with your app URL
+        run: echo "APP_URL=http://localhost:8000/v1/notes" >> $GITHUB_ENV    # This URL is not correct...
 
       - name: Fuzzing
         run: |
           echo "Testing URL: $APP_URL"
-          docker run --network=host owasp/zap2docker-stable zap.sh -cmd -quickurl $APP_URL -quickout report.html -quickfuzz
+          docker run --network=host zaproxy/zap-stable zap.sh -cmd -quickurl $APP_URL -quickout report.html -quickfuzz
 
       - name: Upload ZAP report
         uses: actions/upload-artifact@v4
