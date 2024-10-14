@@ -16,13 +16,15 @@ MAX_PAGE_SIZE = 100
 def create_app(user_serv: UserService, note_serv: NoteService):
     app = Flask(__name__)
     app.config["JWT_SECRET_KEY"] = settings.JWT_SECRET_KEY
-    
+
     app.user_service = user_serv
     app.note_service = note_serv
     return app
 
+
 app = create_app(user_service, note_service)
 jwt = JWTManager(app)
+
 
 @app.route("/v1/register_user", methods=["POST"])
 def register_user():
@@ -140,7 +142,9 @@ def create_note():
         if not note_title or not note_text:
             raise BadRequest("Missing note title or text")
 
-        db_note = app.note_service.create_note(note_title, note_text, author_id, is_public)
+        db_note = app.note_service.create_note(
+            note_title, note_text, author_id, is_public
+        )
         return jsonify(db_note.to_dict()), 201
     except BadRequest as e:
         return jsonify({"error": "Bad request: " + e.get_description()}), 400
