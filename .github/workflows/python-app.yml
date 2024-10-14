@@ -59,7 +59,7 @@ jobs:
 
     - name: Set commit status for Commit Request review
       run: |
-        if [[ "${{ steps.black.outcome }}" == "success" && "${{ steps.ptest.outcome }}" == "success" && "${{ steps.pipaudit.outcome }}" == "success" ]]; then
+        if [[ "${{ steps.black.outcome }}" == "success" && "${{ steps.pytest.outcome }}" == "success" && "${{ steps.pipaudit.outcome }}" == "success" ]]; then
           status="success"
         else
           status="failure"
