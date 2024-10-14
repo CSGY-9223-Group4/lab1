@@ -3,6 +3,7 @@ from flask_jwt_extended import create_access_token
 from ..db import users as UsersDB
 from ..exceptions.auth_exception import AuthException
 
+
 class UserService:
     def __init__(self, users_db: UsersDB):
         self.users_db = users_db
@@ -47,5 +48,6 @@ class UserService:
         if not token or "user_id" not in token or "username" not in token:
             raise AuthException("Invalid JWT identity")
         return token["user_id"]
+
 
 user_service = UserService(UsersDB)
