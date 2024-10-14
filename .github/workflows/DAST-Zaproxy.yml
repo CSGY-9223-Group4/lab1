@@ -10,33 +10,66 @@ on:
       - main
 
 jobs:
-  fuzzing:
+  api-tests:
     runs-on: ubuntu-latest
 
     steps:
       - name: Check out code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v2
 
       - name: Set up ZAP
         run: |
           docker pull zaproxy/zap-stable
-          docker run -u zap -t zaproxy/zap-stable zap.sh -daemon -port 8080 -host 0.0.0.0
-          
+          docker run -u zap -t -d -p 8080:8080 zaproxy/zap-stable zap.sh -daemon -port 8080 -host 0.0.0.0
+
       - name: Wait for ZAP to start
         run: |
           sleep 30  # Wait for ZAP to start
 
-      - name: Define application URL
-        id: app_url
-        run: echo "APP_URL=http://localhost:8000/v1/notes" >> $GITHUB_ENV    # This URL is not correct...
-
-      - name: Fuzzing
+      - name: Register new user
+        id: register_user
         run: |
-          echo "Testing URL: $APP_URL"
-          docker run --network=host zaproxy/zap-stable zap.sh -cmd -quickurl $APP_URL -quickout report.html -quickfuzz
+          response=$(curl -X POST http://localhost:8000/v1/register_user \
+            --data '{"username":"ASDF","password":"QWER"}' \
+            -H 'Content-Type: application/json')
+          echo "Register Response: $response"
+
+      - name: Login
+        id: login
+        run: |
+          login_response=$(curl -X POST http://localhost:8000/v1/login \
+            --data '{"username":"ASDF","password":"QWER"}' \
+            -H 'Content-Type: application/json')
+          echo "Login Response: $login_response"
+          access_token=$(echo "$login_response" | jq -r '.access_token')
+          echo "::set-output name=access_token::$access_token"
+
+      - name: Create Note
+        id: create_note
+        run: |
+          note_response=$(curl -X POST http://localhost:8000/v1/notes \
+            -H "Authorization: Bearer ${{ steps.login.outputs.access_token }}" \
+            -H 'Content-Type: application/json' \
+            --data '{"title": "CONFIDENTIAL, do not read", "text": "This is a personal, private note", "public": false}')
+          echo "Create Note Response: $note_response"
+
+      - name: Fuzz Testing for Sensitive Data
+        run: |
+          sensitive_words=("password" "secret" "token" "sensitive")
+          for word in "${sensitive_words[@]}"; do
+            echo "Testing with payload containing sensitive word: $word"
+            fuzz_response=$(curl -X POST http://localhost:8000/v1/notes \
+              -H "Authorization: Bearer ${{ steps.login.outputs.access_token }}" \
+              -H 'Content-Type: application/json' \
+              --data "{\"title\": \"$word\", \"text\": \"Testing for leaks of sensitive data\", \"public\": false}")
+            echo "Fuzz Test Response: $fuzz_response"
+            if echo "$fuzz_response" | grep -qi "$word"; then
+              echo "Sensitive data leakage detected with word: $word"
+              exit 1
+            fi
+          done
 
       - name: Upload ZAP report
-        uses: actions/upload-artifact@v4
-        with:
-          name: zap-report
-          path: report.html
+        run: |
+          docker run --network=host zaproxy/zap-stable zap.sh -cmd -quickurl http://localhost:8000 -quickout report.html -quickfuzz
+          echo "ZAP scan complete. Report generated."
