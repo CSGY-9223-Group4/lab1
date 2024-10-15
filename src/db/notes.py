@@ -114,7 +114,6 @@ def delete_note(author_id: int, note_id: int) -> bool:
     @param note_id: The ID of the note to delete.
     @return: True if the note was deleted, False if no such note exists.
     """
-    print(f"author_id: {author_id}, note_id: {note_id}")
     with get_db() as db:
         result = db.execute(
             delete(Note).where(
