@@ -51,4 +51,4 @@ jobs:
 
       - name: Sign SBOM with in-toto
         run: |
-          in-toto-sign --layout layout.json --step-name sbom-generation --key mykey.priv --material /tmp/sbom-action-*/image.spdx.json --product /tmp/sbom-action-*/image.spdx.json
+          in-toto-sign -f layout.json --step-name sbom-generation --key mykey.priv --material /tmp/sbom-action-*/image.spdx.json --product /tmp/sbom-action-*/image.spdx.json
