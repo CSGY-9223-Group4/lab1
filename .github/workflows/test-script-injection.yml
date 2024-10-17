@@ -3,10 +3,15 @@ name: Test Script Injection
 on:
   push:
     branches:
-      - main
+      - "**"
+      
   pull_request:
     branches:
       - main
+
+permissions:
+  contents: read    # Allows reading repository contents
+  statuses: write   # Allows writing commit statuses
 
 jobs:
   test-injection:
@@ -30,4 +35,6 @@ jobs:
       - name: Run injection tests
         run: |
           # Actual test script
-          .github/workflows/TestScripts/injectionTest.js "$TEST_ENV_VAR"
+          .github/workflows/TestScripts/injectionTest.js "$JWT_SECRET"
+          .github/workflows/TestScripts/injectionTest.js "$DB_PASSWORD"
+          .github/workflows/TestScripts/injectionTest.js "$DB_ROOT_PASSWORD"
