@@ -1,0 +1,33 @@
+name: Test Script Injection
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test-injection:
+    runs-on: ubuntu-latest
+
+    env:
+      TEST_ENV_VAR: "<script>alert('XSS')</script>"  # Example of a malicious input
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js (if applicable)
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14'  # Specify your Node.js version
+
+      - name: Install dependencies
+        run: npm install  # Adjust according to your project's package manager
+
+      - name: Run injection tests
+        run: |
+          # Actual test script
+          .github/workflows/TestScripts/injectionTest.js "$TEST_ENV_VAR"
