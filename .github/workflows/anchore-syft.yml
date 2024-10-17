@@ -44,7 +44,7 @@ jobs:
 
       - name: Create Private Key File
         env:
-          IN_TOTO_PRIVATE_KEY: ${{ secrets.IN_TOTO_PRIVATE_KEY }}
+          IN_TOTO_PRIVATE_KEY: ${{ secrets.INTOTOPRIVATE }}
         run: |
           echo "${IN_TOTO_PRIVATE_KEY}" > mykey.priv
           chmod 600 mykey.priv
