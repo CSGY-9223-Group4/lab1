@@ -44,16 +44,13 @@ jobs:
 
       - name: Check Private Key ID
         run: |
-          echo "${{ secrets.INTOTOPRIVATE }}" > mykey.priv
-          chmod 600 mykey.priv
-          KEY_ID=$(in-toto key id --key mykey.priv)
-          echo "Private Key ID: ${KEY_ID}"
+          echo "${{ secrets.INTOTOPRIVATE }}" >
+
 
       - name: Check Public Key Info
         run: |
-          echo "${{ secrets.INTOTOPUB }}" > mykey.pub
-          KEY_ID_PUBLIC=$(in-toto key id --key mykey.pub)
-          echo "Public Key ID: ${KEY_ID_PUBLIC}"
+          echo "${{ secrets.INTOTOPUB }}" 
+
    
 
       - name: Create Private Key File
