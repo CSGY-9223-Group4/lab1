@@ -39,19 +39,17 @@ jobs:
           path: /tmp/sbom-action-*/image.spdx.json
 
       - name: Check Private Key ID
-        env:
-          IN_TOTO_PRIVATE_KEY: ${{ secrets.intotopriv }}
         run: |
-          echo "${IN_TOTO_PRIVATE_KEY}" > mykey.priv
+          echo "${ secrets.INTOTOPRIVATE }" > mykey.priv
+          echo "${ secrets.INTOTOPRIVATE }"
           chmod 600 mykey.priv
           KEY_ID=$(in-toto key id --key mykey.priv)
           echo "Private Key ID: ${KEY_ID}"
 
       - name: Check Public Key Info
-        env:
-          IN_TOTO_PUBLIC_KEY: ${{ secrets.intotopublic }}
         run: |
-          echo "${IN_TOTO_PUBLIC_KEY}" > mykey.pub
+          echo "${{ secrets.INTOTOPUB }}" > mykey.pub
+          echo "${{ secrets.INTOTOPUB }}"
           KEY_ID_PUBLIC=$(in-toto key id --key mykey.pub)
           echo "Public Key ID: ${KEY_ID_PUBLIC}"    
 
