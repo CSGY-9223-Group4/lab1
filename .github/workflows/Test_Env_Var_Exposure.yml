@@ -1,0 +1,30 @@
+name: Detect Env Variable Exposure
+
+on:
+  push:
+    branches:
+      - "**"
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read # default to read-only
+  statuses: write   # Allows writing commit statuses
+  
+jobs:
+  check-env:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      
+      - name: Check for environment variable exposure
+        run: |
+          # Check for direct printing of environment variables
+          if grep -q 'echo $' **/*.sh; then
+            echo "Warning: Environment variable might be exposed in script."
+            exit 1
+          fi
+          
+          # Additional checks can be added here
