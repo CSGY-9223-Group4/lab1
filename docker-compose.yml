@@ -14,8 +14,8 @@ services:
     volumes:
       - ./src:/app
     depends_on:
-      db:
-        condition: service_healthy
+      db-migrations:
+        condition: service_completed_successfully
     read_only: true
     cap_drop:
       - ALL
@@ -26,10 +26,11 @@ services:
     memswap_limit: 512m
     privileged: false
     ulimits:
-      nproc: 10
+      # nproc: 10
       nofile:
         soft: 1024
         hard: 1024
+
   db:
     image: mysql:latest
     restart: on-failure
