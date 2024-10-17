@@ -1,0 +1,22 @@
+name: template
+
+on:
+  push:
+    branches: "**"  # For all pushes
+  pull_request:
+    branches: [ $default-branch ]
+
+
+permissions:
+  contents: read # default to read-only
+  statuses: write   # Allows writing commit statuses
+  
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 
+        run: 
