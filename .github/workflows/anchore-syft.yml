@@ -7,7 +7,7 @@ on:
 # Adjusted permissions to follow least privilege access
 permissions:
   contents: write # Required to upload to the Dependency submission API
-  statuses: write   # Allows writing commit statuses
+  statuses: write  # Allows writing commit statuses
 
 jobs:
   Anchore-Build-Scan:
@@ -42,20 +42,13 @@ jobs:
         run: |
           pip install in-toto
 
-
-      - name: Sign SBOM
+      - name: Create Private Key File
+        env:
+          IN_TOTO_PRIVATE_KEY: ${{ secrets.IN_TOTO_PRIVATE_KEY }}
         run: |
-          in-toto-sign --layout layout.json --step-name sbom-generation --key ${{ secrets.INTOTOPRIVATE }} --material /tmp/sbom-action-*/image.spdx.json --product /tmp/sbom-action-*/image.spdx.json
+          echo "${IN_TOTO_PRIVATE_KEY}" > mykey.priv
+          chmod 600 mykey.priv
 
-      - name: Define in-toto layout
+      - name: Sign SBOM with in-toto
         run: |
-          echo '{
-            "steps": [
-              {
-                "name": "sbom-generation",
-                "expected_materials": ["image.spdx.json"],
-                "expected_products": ["image.spdx.json"],
-                "public_key": "${{ secrets.INTOTOPUB }}"
-              }
-            ]
-          }' > layout.json
+          in-toto-sign --layout layout.json --step-name sbom-generation --key mykey.priv --material /tmp/sbom-action-*/image.spdx.json --product /tmp/sbom-action-*/image.spdx.json
