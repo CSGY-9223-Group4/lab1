@@ -47,7 +47,7 @@ jobs:
 
       - name: Check Public Key Info
         run: |
-          echo "${{ secrets.INTOTOPUBLIC }}" > mykey.pub
+          echo "${{ secrets.INTOTOPUB }}" > mykey.pub
           KEY_ID_PUBLIC=$(in-toto key id --key mykey.pub)
           echo "Public Key ID: ${KEY_ID_PUBLIC}"
    
