@@ -45,7 +45,7 @@ jobs:
 
       - name: Sign SBOM
         run: |
-          in-toto-sign --layout layout.json --step-name sbom-generation --key ${{ secrets.YOUR_PRIVATE_KEY }} --material /tmp/sbom-action-*/image.spdx.json --product /tmp/sbom-action-*/image.spdx.json
+          in-toto-sign --layout layout.json --step-name sbom-generation --key ${{ secrets.INTOTOPRIVATE }} --material /tmp/sbom-action-*/image.spdx.json --product /tmp/sbom-action-*/image.spdx.json
 
       - name: Define in-toto layout
         run: |
@@ -55,7 +55,7 @@ jobs:
                 "name": "sbom-generation",
                 "expected_materials": ["image.spdx.json"],
                 "expected_products": ["image.spdx.json"],
-                "public_key": "${{ secrets.YOUR_PUBLIC_KEY }}"
+                "public_key": "${{ secrets.INTOTOPUB }}"
               }
             ]
           }' > layout.json
