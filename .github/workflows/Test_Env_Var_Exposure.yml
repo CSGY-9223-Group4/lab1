@@ -8,6 +8,7 @@ on:
     branches:
       - main
 
+
 permissions:
   contents: read # default to read-only
   statuses: write   # Allows writing commit statuses
