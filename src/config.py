@@ -2,6 +2,7 @@ import os
 
 
 class Settings:
+    # TODO: move secrets to using GitHub Secrets
     def __init__(self):
         # Database configurations
         self.DB_HOST: str = os.getenv("DB_HOST")
