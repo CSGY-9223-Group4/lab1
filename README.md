@@ -13,6 +13,22 @@
     docker compose up --build
     ```
 
+## Testing
+To run all tests
+```bash
+pytest
+```
+
+To run only unit tests
+```bash
+pytest tests/
+```
+
+To run only integration tests
+```bash
+pytest integration/
+```
+
 ### Sample Requests
 ```bash
 # register a new user
