@@ -13,7 +13,9 @@ SERVER_START_TIMEOUT_SEC = 30
 
 def random_secret(length=10):
     """Generate a random string of a specified length."""
-    return base64.encode("".join(random.choices(ascii_letters, k=length)))
+    return base64.b64encode(
+        "".join(random.choices(ascii_letters, k=length)).encode()
+    ).decode()
 
 
 @pytest.fixture(scope="session")
