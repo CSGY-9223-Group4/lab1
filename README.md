@@ -13,6 +13,7 @@
     docker compose up --build
     ```
 
+
 ## Testing
 To run all tests
 ```bash
