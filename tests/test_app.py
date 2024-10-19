@@ -102,9 +102,7 @@ def test_login_not_json(client: FlaskClient):
 
 
 def test_login_unknown_error(client: FlaskClient):
-    with patch.object(
-        client.application.user_service, "login", side_effect=Exception
-    ):
+    with patch.object(client.application.user_service, "login", side_effect=Exception):
         response = client.post(
             "/v1/login", json={"username": "testuser", "password": "testpass"}
         )
@@ -128,12 +126,12 @@ def test_login_invalid_credentials(client: FlaskClient):
 @pytest.mark.parametrize(
     "route,method",
     [
-        ("/v1/protected",  FlaskClient.get),
-        ("/v1/notes",      FlaskClient.get),
-        ("/v1/notes/1",    FlaskClient.get),
-        ("/v1/notes",      FlaskClient.post),
-        ("/v1/notes/1",    FlaskClient.put),
-        ("/v1/notes/1",    FlaskClient.delete),
+        ("/v1/protected", FlaskClient.get),
+        ("/v1/notes", FlaskClient.get),
+        ("/v1/notes/1", FlaskClient.get),
+        ("/v1/notes", FlaskClient.post),
+        ("/v1/notes/1", FlaskClient.put),
+        ("/v1/notes/1", FlaskClient.delete),
     ],
 )
 def test_protected_routes_without_token(client: FlaskClient, route: str, method):
@@ -143,7 +141,9 @@ def test_protected_routes_without_token(client: FlaskClient, route: str, method)
 
 def test_protected(client: FlaskClient):
     access_token = create_access_token(identity=1)
-    response = client.get("/v1/protected", headers={"Authorization": f"Bearer {access_token}"})
+    response = client.get(
+        "/v1/protected", headers={"Authorization": f"Bearer {access_token}"}
+    )
     assert response.status_code == 200
     assert json.loads(response.data)["logged_in_as"] == 1
 
@@ -313,8 +313,9 @@ def test_create_note_success(client: FlaskClient, app):
 def test_create_note_missing_text(client: FlaskClient):
     access_token = create_access_token(identity=1)
     response = client.post(
-        "/v1/notes", json={"title": "New Note"},
-        headers={"Authorization": f"Bearer {access_token}"}
+        "/v1/notes",
+        json={"title": "New Note"},
+        headers={"Authorization": f"Bearer {access_token}"},
     )
     assert response.status_code == 400
     assert b"Missing note title or text" in response.data
@@ -323,8 +324,9 @@ def test_create_note_missing_text(client: FlaskClient):
 def test_create_note_missing_title(client: FlaskClient):
     access_token = create_access_token(identity=1)
     response = client.post(
-        "/v1/notes", json={"text": "This is a new note"},
-        headers={"Authorization": f"Bearer {access_token}"}
+        "/v1/notes",
+        json={"text": "This is a new note"},
+        headers={"Authorization": f"Bearer {access_token}"},
     )
     assert response.status_code == 400
     assert b"Missing note title or text" in response.data
@@ -332,8 +334,11 @@ def test_create_note_missing_title(client: FlaskClient):
 
 def test_create_note_not_json(client: FlaskClient):
     access_token = create_access_token(identity=1)
-    response = client.post("/v1/notes", data="not json",
-                           headers={"Authorization": f"Bearer {access_token}"})
+    response = client.post(
+        "/v1/notes",
+        data="not json",
+        headers={"Authorization": f"Bearer {access_token}"},
+    )
     assert response.status_code == 415
     assert b"Unsupported media type" in response.data
 
@@ -383,8 +388,9 @@ def test_update_note_success(client: FlaskClient, app):
 def test_update_note_missing_text(client: FlaskClient):
     access_token = create_access_token(identity=1)
     response = client.put(
-        "/v1/notes/1", json={"title": "Updated Note"},
-        headers={"Authorization": f"Bearer {access_token}"}
+        "/v1/notes/1",
+        json={"title": "Updated Note"},
+        headers={"Authorization": f"Bearer {access_token}"},
     )
     assert response.status_code == 400
     assert b"Missing note title or text" in response.data
@@ -393,8 +399,9 @@ def test_update_note_missing_text(client: FlaskClient):
 def test_update_note_missing_title(client: FlaskClient):
     access_token = create_access_token(identity=1)
     response = client.put(
-        "/v1/notes/1", json={"text": "This note has been updated"},
-        headers={"Authorization": f"Bearer {access_token}"}
+        "/v1/notes/1",
+        json={"text": "This note has been updated"},
+        headers={"Authorization": f"Bearer {access_token}"},
     )
     assert response.status_code == 400
     assert b"Missing note title or text" in response.data
@@ -402,8 +409,11 @@ def test_update_note_missing_title(client: FlaskClient):
 
 def test_update_note_not_json(client: FlaskClient):
     access_token = create_access_token(identity=1)
-    response = client.put("/v1/notes/1", data="not json",
-                          headers={"Authorization": f"Bearer {access_token}"})
+    response = client.put(
+        "/v1/notes/1",
+        data="not json",
+        headers={"Authorization": f"Bearer {access_token}"},
+    )
     assert response.status_code == 415
     assert b"Unsupported media type" in response.data
 
