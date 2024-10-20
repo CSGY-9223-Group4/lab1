@@ -1,0 +1,59 @@
+name: Anchore Syft SBOM scan
+
+on:
+  push:
+    branches: "**"
+
+jobs:
+  Anchore-Build-Scan:
+    permissions:
+      contents: write # Required to upload to the Dependency submission API
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout the code
+      uses: actions/checkout@v4
+
+    - name: Build the Docker image
+      run: docker build . --file Dockerfile --tag localbuild/testimage:latest
+
+    - name: Scan the image and upload dependency results
+      id: sbom_scan
+      uses: anchore/sbom-action@latest # Update to the latest version
+      with:
+        image: "localbuild/testimage:latest"
+        artifact-name: image.spdx.json
+        dependency-snapshot: true
+
+    - name: List SBOM Output Directory
+      run: |
+        echo "Contents of the SBOM action output directory:"
+        ls -al /tmp/sbom-action-* || true
+
+    - name: Create artifacts directory
+      run: mkdir -p artifacts
+
+    - name: Move SBOM artifact
+      run: |
+        mv /tmp/sbom-action-*/image.spdx.json artifacts/image.spdx.json
+
+    - name: Upload SBOM artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: sbom
+        path: artifacts/image.spdx.json # Path to the SBOM artifact in the artifacts folder
+
+    - name: Attest the SBOM artifact
+      uses: actions/attest@v1
+      with:
+        intoto_private_key: ${{ secrets.INTOTOPRIVATE }}
+        intoto_public_key: ${{ secrets.INTOTOPUB }}
+        artifact_path: artifacts/image.spdx.json # Path to the SBOM artifact
+        link_name: sbom-attestation
+        predicate_type: https://in-toto.io/Statement
+
+    - name: Upload attestation
+      uses: actions/upload-artifact@v4
+      with:
+        name: sbom-attestation
+        path: artifacts/ # Specify the path to the attestation file
