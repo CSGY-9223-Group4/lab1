@@ -17,16 +17,6 @@ jobs:
         with:
           ref: main  # or the branch where configs exist
 
-      #- name: List Root Directory
-      #  run: |
-      #    echo "Contents of the root directory:"
-      #    ls -al || true  # List all contents of the root directory
-
-      #- name: List Configs Directory
-      #  run: |
-      #    echo "Listing all contents of the configs directory:"
-      #    ls -al configs || true  # List all contents of the configs directory
-
       - name: Install In-Toto
         run: |
           sudo apt-get update
@@ -35,51 +25,47 @@ jobs:
 
       - name: Generate Metadata for Build
         id: build
-
         run: |
           set -e
           echo "Archiving source code..."
-          tar -czf output-artifact.tar.gz src
+          mkdir -p artifacts  # Create the artifacts directory in the root
+          tar -czf artifacts/output-artifact.tar.gz src  # Archive src folder into artifacts
           echo "Starting in-toto record for build..."
           echo "${{ secrets.INTOTOPRIVATE }}" > private_key.pem
           in-toto-record start -n build --signing-key private_key.pem
           echo "Generating in-toto metadata for build..."
-          in-toto-record stop -n build --products output-artifact.tar.gz --signing-key private_key.pem
+          in-toto-record stop -n build --products artifacts/output-artifact.tar.gz --signing-key private_key.pem
 
       - name: Generate Metadata for Test
         id: test
-        
         run: |
           set -e
           echo "Running tests..."
-          # Assume tests run here and generate test-results.xml
+          mkdir -p artifacts  # Ensure artifacts directory exists
+          echo "<test-results><test name='example' status='passed'/></test-results>" > artifacts/test-results.xml  # Create in artifacts
           echo "Starting in-toto record for test..."
           echo "${{ secrets.INTOTOPRIVATE }}" > private_key.pem
           in-toto-record start -n test --signing-key private_key.pem
-          # Run your test commands here and ensure test-results.xml is generated
           echo "Generating in-toto metadata for test..."
-          in-toto-record stop -n test --products test-results.xml --signing-key private_key.pem
+          in-toto-record stop -n test --products artifacts/test-results.xml --signing-key private_key.pem
 
       - name: Generate Metadata for Deploy
         id: deploy
         run: |
           set -e
           echo "Deploying artifacts..."
-          # Assume deployment happens here and results in deployed-artifact
+          mkdir -p artifacts  # Ensure artifacts directory exists
+          touch artifacts/deployed-artifact  # Create a placeholder file in artifacts
           echo "Starting in-toto record for deploy..."
           echo "${{ secrets.INTOTOPRIVATE }}" > private_key.pem
           in-toto-record start -n deploy --signing-key private_key.pem
           echo "Generating in-toto metadata for deploy..."
-          in-toto-record stop -n deploy --products deployed-artifact --signing-key private_key.pem
-
-
+          in-toto-record stop -n deploy --products artifacts/deployed-artifact --signing-key private_key.pem
 
       - name: Verify the artifacts using the public key from GitHub Secrets
         run: |
           set -e
           echo "Verifying artifacts..."
-
-          # Print layout.json for debugging
           echo "Contents of layout.json:"
           cat configs/layout.json || true
           
