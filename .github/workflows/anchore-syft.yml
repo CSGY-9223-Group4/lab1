@@ -15,6 +15,8 @@ jobs:
     steps:
       - name: Checkout the code
         uses: actions/checkout@v4
+        with:
+          ref: main  # or the branch where configs exist
 
       - name: Build the Docker image
         run: docker build . --file Dockerfile --tag localbuild/testimage:latest
@@ -51,8 +53,12 @@ jobs:
         run: |
           set -e
           echo "Verifying artifacts..."
+          echo "Contents of layout.json:"
+          cat configs/layout.json || true
+          
           # Write the public key to a file
           printf "%s" "${{ secrets.INTOTOPUB }}" > public_key.pem
+          
           # Verify the artifacts
           in-toto-verify --layout configs/layout.json --verification-keys public_key.pem
 
