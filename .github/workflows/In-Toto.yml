@@ -41,20 +41,46 @@ jobs:
 
       - name: Generate Metadata for Test
         id: test
+        #run: |
+        #  # Run tests here
+        #  # Create in-toto metadata using the private key from GitHub Secrets
+        #  in-toto-record -n test --products test-results.xml --key <(echo "${{ secrets.INTOTOPRIVATE }}")
+        
         run: |
-          # Run tests here
-          # Create in-toto metadata using the private key from GitHub Secrets
-          in-toto-record -n test --products test-results.xml --key <(echo "${{ secrets.INTOTOPRIVATE }}")
+          set -e
+          echo "Running tests..."
+          # Assume tests run here and generate test-results.xml
+          echo "Starting in-toto record for test..."
+          echo "${{ secrets.INTOTOPRIVATE }}" > private_key.pem
+          in-toto-record start -n test --signing-key private_key.pem
+          # Run your test commands here and ensure test-results.xml is generated
+          echo "Generating in-toto metadata for test..."
+          in-toto-record stop -n test --products test-results.xml --signing-key private_key.pem
 
       - name: Generate Metadata for Deploy
         id: deploy
-        run: |
+        #run: |
           # Deploy your artifact here
           # Create in-toto metadata using the private key from GitHub Secrets
-          in-toto-record -n deploy --products deployed-artifact --key <(echo "${{ secrets.INTOTOPRIVATE }}")
+          #in-toto-record -n deploy --products deployed-artifact --key <(echo "${{ secrets.INTOTOPRIVATE }}")
+          
+        run: |
+          set -e
+          echo "Deploying artifacts..."
+          # Assume deployment happens here and results in deployed-artifact
+          echo "Starting in-toto record for deploy..."
+          echo "${{ secrets.INTOTOPRIVATE }}" > private_key.pem
+          in-toto-record start -n deploy --signing-key private_key.pem
+          echo "Generating in-toto metadata for deploy..."
+          in-toto-record stop -n deploy --products deployed-artifact --signing-key private_key.pem
 
       - name: Verify Artifacts
         run: |
           # Verify the artifacts using the public key from GitHub Secrets
-          in-toto-verify --layout layout.json --key <(echo "${{ secrets.INTOTOPUB }}")
+          #in-toto-verify --layout layout.json --key <(echo "${{ secrets.INTOTOPUB }}")
+
+          set -e
+          echo "Verifying artifacts..."
+          echo "${{ secrets.INTOTOPUB }}" > public_key.pem
+          in-toto-verify --layout layout.json --key public_key.pem
 
