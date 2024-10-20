@@ -15,6 +15,12 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      - name: Install In-Toto
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3-pip
+          pip3 install in-toto
+
       - name: Generate Metadata for Build
         id: build
         run: |
