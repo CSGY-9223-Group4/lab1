@@ -77,5 +77,10 @@ jobs:
       - name: Verify Artifacts
         run: |
           # Verify the artifacts using the public key from GitHub Secrets
-          in-toto-verify --layout layout.json --key <(echo "${{ secrets.INTOTOPUB }}")
+          #in-toto-verify --layout layout.json --key <(echo "${{ secrets.INTOTOPUB }}")
+
+          set -e
+          echo "Verifying artifacts..."
+          echo "${{ secrets.INTOTOPUB }}" > public_key.pem
+          in-toto-verify --layout layout.json --key public_key.pem
 
