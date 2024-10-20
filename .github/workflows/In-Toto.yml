@@ -15,8 +15,10 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Checkout Configs
-        run: git checkout HEAD /configs/layout.json
+      - name: List Configs Directory
+        run: |
+          echo "Contents of configs directory:"
+          ls -al configs/layout.json || true  # List the contents of the configs directory
 
       - name: Install In-Toto
         run: |
