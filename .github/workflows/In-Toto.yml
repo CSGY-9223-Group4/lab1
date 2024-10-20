@@ -23,6 +23,17 @@ jobs:
           sudo apt-get install -y python3-pip
           pip3 install in-toto
 
+      - name: Access Private Key
+        run: |
+          echo "${{ secrets.INTOTOPRIVATE }}" > private_key.pem
+          chmod 600 private_key.pem  # Set permissions to restrict access
+
+      - name: Verify Private Key
+        run: |
+          echo "Checking if private key is accessible..."
+          cat private_key.pem  # Optional: for debugging, but be cautious with sensitive info
+          openssl rsa -in private_key.pem -check
+
       - name: Generate Metadata for Build
         id: build
         run: |
