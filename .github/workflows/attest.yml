@@ -11,6 +11,8 @@ jobs:
   Anchore-Build-Scan:
     permissions:
       contents: write # Required to upload to the Dependency submission API
+      id-token: write
+      
     runs-on: ubuntu-latest
 
     steps:
