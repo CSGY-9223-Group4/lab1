@@ -144,3 +144,5 @@ CREATE TABLE IF NOT EXISTS `notes` (
         ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
+### Pull Request Limitation
+Maximum up to 10 opened PRs at a time.  Please review your PRs and close the obsolete pull requests.
