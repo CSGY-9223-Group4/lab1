@@ -41,10 +41,15 @@ jobs:
       run: |
         black --check .
 
-    - name: Test with pytest
+    - name: Test with pytest and coverage
       id: tests
       run: |
-        pytest
+        pytest --cov=src tests/
+        coverage report --fail-under=90
+
+    - name: Integration tests
+      run: |
+        pytest integration/
 
     - name: Set commit status for Commit Request review
       run: |
