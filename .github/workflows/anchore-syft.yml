@@ -60,6 +60,13 @@ jobs:
           echo "${IN_TOTO_PRIVATE_KEY}" > mykey.priv
           chmod 600 mykey.priv
 
-      - name: Sign SBOM with in-toto
+      - name: Sign Artifact
+        env:
+          ANCHORE_SBOM_ACTION_PRIOR_ARTIFACT: image.spdx.json
+
         run: |
-          in-toto-sign -f layout.json --key <(echo "${{ secrets.INTOTOPRIVATE }}") -m /tmp/sbom-action-*/image.spdx.json -p /tmp/sbom-action-*/image.spdx.json
+          set -e
+          in-toto-sign -f layout.json --key <(echo "${{ secrets.INTOTOPRIVATE }}") -m /tmp/sbom-action-FRXq7j/image.spdx.json -p /tmp/sbom-action-FRXq7j/image.spdx.json
+  
+            
+        
