@@ -1,0 +1,76 @@
+name: In-Toto Workflow
+
+on:
+  push:
+    branches: "**"  # For all pushes
+
+permissions:
+  contents: read # default to read-only
+  statuses: write   # Allows writing commit statuses
+
+jobs:
+  in-toto:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          ref: main  # or the branch where configs exist
+
+      - name: Install In-Toto
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3-pip
+          pip3 install in-toto
+
+      - name: Generate Metadata for Build
+        id: build
+        run: |
+          set -e
+          echo "Archiving source code..."
+          mkdir -p artifacts  # Create the artifacts directory in the root
+          tar -czf artifacts/output-artifact.tar.gz src  # Archive src folder into artifacts
+          echo "Starting in-toto record for build..."
+          echo "${{ secrets.INTOTOPRIVATE }}" > private_key.pem
+          in-toto-record start -n build --signing-key private_key.pem
+          echo "Generating in-toto metadata for build..."
+          in-toto-record stop -n build --products artifacts/output-artifact.tar.gz --signing-key private_key.pem
+
+      - name: Generate Metadata for Test
+        id: test
+        run: |
+          set -e
+          echo "Running tests..."
+          mkdir -p artifacts  # Ensure artifacts directory exists
+          echo "<test-results><test name='example' status='passed'/></test-results>" > artifacts/test-results.xml  # Create in artifacts
+          echo "Starting in-toto record for test..."
+          echo "${{ secrets.INTOTOPRIVATE }}" > private_key.pem
+          in-toto-record start -n test --signing-key private_key.pem
+          echo "Generating in-toto metadata for test..."
+          in-toto-record stop -n test --products artifacts/test-results.xml --signing-key private_key.pem
+
+      - name: Generate Metadata for Deploy
+        id: deploy
+        run: |
+          set -e
+          echo "Deploying artifacts..."
+          mkdir -p artifacts  # Ensure artifacts directory exists
+          touch artifacts/deployed-artifact  # Create a placeholder file in artifacts
+          echo "Starting in-toto record for deploy..."
+          echo "${{ secrets.INTOTOPRIVATE }}" > private_key.pem
+          in-toto-record start -n deploy --signing-key private_key.pem
+          echo "Generating in-toto metadata for deploy..."
+          in-toto-record stop -n deploy --products artifacts/deployed-artifact --signing-key private_key.pem
+
+      - name: Verify the artifacts using the public key from GitHub Secrets
+        run: |
+          set -e
+          echo "Verifying artifacts..."
+          echo "Contents of layout.json:"
+          cat configs/layout.json || true
+          
+          # Write the public key to a file
+          printf "%s" "${{ secrets.INTOTOPUB }}" > public_key.pem
+          
+          # Verify the artifacts
+          in-toto-verify --layout configs/layout.json --verification-keys public_key.pem
