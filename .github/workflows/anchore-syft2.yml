@@ -47,17 +47,29 @@ jobs:
       with:
         name: sbom
         path: artifacts/image.spdx.json
+        
+    - name: Create Attestation Predicate
+      id: create_predicate
+      run: |
+        echo '{
+          "predicateType": "https://in-toto.io/Predicate/Attestation",
+          "subject": [{"name": "artifacts/image.spdx.json"}],
+          "claim": {
+            "summary": "SBOM generated successfully.",
+            "commit": "'"$(date '+%Y-%m-%d %H:%M:%S')"'"  # Correctly add current date and time
+          }
+        }' > attestation_predicate.json
 
     - name: Attest the SBOM artifact
       uses: actions/attest@v1
       with:
         subject-path: artifacts/image.spdx.json
         predicate-type: https://in-toto.io/Statement
-        predicate: '{"predicateType": "https://in-toto.io/Predicate/Attestation", "subject": [{"name": "artifacts/image.spdx.json"}], "claim": {"summary": "SBOM generated successfully."}}'
-        github-token: ${{ secrets.GITHUB_TOKEN }}  # Pass the GitHub token
+        predicate-path: attestation_predicate.json  # Use the created JSON file
+        github-token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Upload attestation
       uses: actions/upload-artifact@v4
       with:
         name: sbom-attestation
-        path: artifacts/
+        path: attestation_predicate.json  # Specify the path to the attestation file
