@@ -16,7 +16,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Checkout Configs
-        run: git checkout HEAD configs/layout.json
+        run: git checkout HEAD /configs/layout.json
 
       - name: Install In-Toto
         run: |
