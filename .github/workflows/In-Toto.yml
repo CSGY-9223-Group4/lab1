@@ -15,6 +15,16 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      - name: List Root Directory
+        run: |
+          echo "Contents of the root directory:"
+          ls -al || true  # List all contents of the root directory
+
+      - name: List Configs Directory
+        run: |
+          echo "Listing all contents of the configs directory:"
+          ls -al configs || true  # List all contents of the configs directory
+
       - name: Install In-Toto
         run: |
           sudo apt-get update
@@ -84,4 +94,4 @@ jobs:
           printf "%s" "${{ secrets.INTOTOPUB }}" > public_key.pem
           
           # Verify the artifacts
-          in-toto-verify --layout layout.json --verification-keys public_key.pem
+          in-toto-verify --layout configs/layout.json --verification-keys public_key.pem
