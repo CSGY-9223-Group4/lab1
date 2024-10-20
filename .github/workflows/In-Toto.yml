@@ -60,18 +60,28 @@ jobs:
           echo "Generating in-toto metadata for deploy..."
           in-toto-record stop -n deploy --products deployed-artifact --signing-key private_key.pem
 
-      - name: Verify Artifacts
-        run: |
-          # Verify the artifacts using the public key from GitHub Secrets
-          #in-toto-verify --layout layout.json --key <(echo "${{ secrets.INTOTOPUB }}")
+   #   - name: Verify Artifacts
+   #     run: |
+   #       # Verify the artifacts using the public key from GitHub Secrets
+   #       #in-toto-verify --layout layout.json --key <(echo "${{ secrets.INTOTOPUB }}")
 
+   #       set -e
+   #       echo "Verifying artifacts..."
+   #       # Write the public key to a file
+   #       printf "%s" "${{ secrets.INTOTOPUB }}" > public_key.pem
+   #       #chmod 600 public_key.pem  # Secure the public key file
+   #       cat public_key.pem  # Only for debugging purposes; remove after testing
+          
+   #       # Verify the artifacts
+   #       in-toto-verify --layout layout.json --key public_key.pem
+
+      - name: Verify the artifacts using the public key from GitHub Secrets
+        run: |
           set -e
           echo "Verifying artifacts..."
+          
           # Write the public key to a file
           printf "%s" "${{ secrets.INTOTOPUB }}" > public_key.pem
-          #chmod 600 public_key.pem  # Secure the public key file
-          cat public_key.pem  # Only for debugging purposes; remove after testing
           
           # Verify the artifacts
-          in-toto-verify --layout layout.json --key public_key.pem
-
+          in-toto-verify --layout layout.json --verification-keys public_key.pem
