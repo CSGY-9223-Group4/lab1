@@ -56,7 +56,7 @@ jobs:
           "subject": [{"name": "artifacts/image.spdx.json"}],
           "claim": {
             "summary": "SBOM generated successfully.",
-            "commit": "'"$(date '+%Y-%m-%d %H:%M:%S')"'"  # Add current date and time
+            "commit": "'"$(date '+%Y-%m-%d %H:%M:%S')"'"
           }
         }' > attestation_predicate.json
 
