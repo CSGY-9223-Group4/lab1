@@ -18,6 +18,19 @@ jobs:
     - name: Build the Docker image
       run: docker build . --file Dockerfile --tag localbuild/testimage:latest
 
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: Install In-toto
+      run: |
+        python -m venv venv
+        source venv/bin/activate
+        pip install in-toto
+        echo "${GITHUB_WORKSPACE}/venv/bin" >> $GITHUB_PATH
+
+
     - name: Generate In-toto Attestation
       env:
         INTOTOPUB: ${{ secrets.INTOTOPUB }}       # Public key
@@ -26,15 +39,47 @@ jobs:
         # Install In-toto
         pip install in-toto
 
-        # Generate the attestation
-        in-toto record --layout attestation.layout \
-          --link-name build \
-          --material-path Dockerfile \
-          --material-path . \
-          --predicate "{\"predicateType\": \"https://in-toto.io/Predicate/Attestation\", \"subject\": [{\"name\": \"localbuild/testimage:latest\"}], \"claim\": {\"summary\": \"Image built and scanned successfully.\"}}" \
-          --private-key "$INTOTOPRIVATE" \
-          --public-key "$INTOTOPUB" \
-          attestation.json
+
+The error message you're encountering indicates that the in-toto command is not found, despite successfully installing the package. This can happen for a couple of reasons:
+
+Possible Solutions
+Ensure pip installs to the correct location: Since the message indicates that it defaults to user installation, the executable might not be in the PATH. You can explicitly specify the installation path by modifying the command as follows:
+
+yaml
+Copy code
+- name: Install In-toto
+  run: |
+    pip install --user in-toto
+    echo "${HOME}/.local/bin" >> $GITHUB_PATH
+This adds the user installation path to the PATH environment variable for subsequent steps.
+
+Use a virtual environment: Another approach is to create a virtual environment and install in-toto there. This isolates your dependencies and ensures that the command is available:
+
+yaml
+Copy code
+- name: Set up Python
+  uses: actions/setup-python@v4
+  with:
+    python-version: '3.10'
+
+- name: Install In-toto
+  run: |
+    python -m venv venv
+    source venv/bin/activate
+    pip install in-toto
+    echo "${GITHUB_WORKSPACE}/venv/bin" >> $GITHUB_PATH
+
+- name: Generate In-toto Attestation
+  run: |
+    source venv/bin/activate
+    in-toto record --layout attestation.layout \
+      --link-name build \
+      --material-path Dockerfile \
+      --material-path . \
+      --predicate "{\"predicateType\": \"https://in-toto.io/Predicate/Attestation\", \"subject\": [{\"name\": \"localbuild/testimage:latest\"}], \"claim\": {\"summary\": \"Image built and scanned successfully.\"}}" \
+      --private-key "$INTOTOPRIVATE" \
+      --public-key "$INTOTOPUB" \
+      attestation.json
 
     - name: Upload Attestation Artifact
       uses: actions/upload-artifact@v4
