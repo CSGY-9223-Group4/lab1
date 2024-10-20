@@ -57,10 +57,14 @@ jobs:
         #link_name: sbom-attestation
         #predicate_type: https://in-toto.io/Statement
         
-        subject-path: artifacts/image.spdx.json  # Provide the path to the artifact
-        predicate-type: https://in-toto.io/Statement
+        #subject-path: artifacts/image.spdx.json  # Provide the path to the artifact
+        #predicate-type: https://in-toto.io/Statement
         intoto-private-key: ${{ secrets.INTOTOPRIVATE }}
         intoto-public-key: ${{ secrets.INTOTOPUB }}
+
+        subject-path: artifacts/image.spdx.json  # Correct input
+        predicate-type: https://in-toto.io/Statement
+        predicate: '{"predicateType": "https://in-toto.io/Predicate/Attestation", "subject": [{"name": "artifacts/image.spdx.json"}], "claim": {"summary": "SBOM generated successfully."}}'  # Custom predicate
 
     - name: Upload attestation
       uses: actions/upload-artifact@v4
