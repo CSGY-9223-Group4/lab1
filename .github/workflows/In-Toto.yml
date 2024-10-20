@@ -14,6 +14,8 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+        with:
+          ref: main  # or the branch where configs exist
 
       - name: List Root Directory
         run: |
