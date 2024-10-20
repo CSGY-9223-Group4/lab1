@@ -44,7 +44,7 @@ jobs:
 
       - name: Check Private Key ID
         run: |
-          echo "${{ secrets.INTOTOPRIVATE }}" >
+          echo "${{ secrets.INTOTOPRIVATE }}"
 
 
       - name: Check Public Key Info
