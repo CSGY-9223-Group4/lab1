@@ -15,10 +15,15 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      - name: List Root Directory
+        run: |
+          echo "Contents of the root directory:"
+          ls -al || true  # List all contents of the root directory
+
       - name: List Configs Directory
         run: |
-          echo "Contents of configs directory:"
-          ls -al configs/layout.json || true  # List the contents of the configs directory
+          echo "Listing all contents of the configs directory:"
+          ls -al configs || true  # List all contents of the configs directory
 
       - name: Install In-Toto
         run: |
