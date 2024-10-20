@@ -47,12 +47,12 @@ jobs:
           echo "${{ secrets.INTOTOPRIVATE }}" > mykey.priv
           chmod 600 mykey.priv
 
-      - name: Sign Artifact
-        env:
-          ANCHORE_SBOM_ACTION_PRIOR_ARTIFACT: image.spdx.json
+      - name: Verify Artifacts
         run: |
           set -e
-          # List the contents to confirm file paths
-          ls -al /tmp/sbom-action-*/image.spdx.json
-          in-toto-sign -f layout.json --key mykey.priv -m /tmp/sbom-action-*/image.spdx.json -p /tmp/sbom-action-*/image.spdx.json
+          echo "Verifying artifacts..."
+          # Write the public key to a file
+          printf "%s" "${{ secrets.INTOTOPUB }}" > public_key.pem
+          # Verify the artifacts
+          in-toto-verify --layout layout.json --layout-key public_key.pem
 
