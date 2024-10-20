@@ -5,8 +5,9 @@ on:
     branches: "**"  # For all pushes
 
 permissions:
-  contents: read # default to read-only
+  contents: write # default to read-only
   statuses: write   # Allows writing commit statuses
+  attestations: write  # Allows writing artifacts
 
 jobs:
   in-toto:
