@@ -4,7 +4,7 @@
       {
         "name": "build",
         "expected_parameters": {
-          "source": "https://github.com/CSGY-9223-Group4/lab1/repo.git"    #"source": "https://github.com/your/repo.git"
+          "source": "https://github.com/CSGY-9223-Group4/lab1/repo.git"
         },
         "products": ["output-artifact.tar.gz"]
       },
