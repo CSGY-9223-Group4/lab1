@@ -83,7 +83,9 @@ jobs:
           echo "Verifying artifacts..."
           # Write the public key to a file
           printf "%s" "${{ secrets.INTOTOPUB }}" > public_key.pem
-          chmod 600 public_key.pem  # Secure the public key file
+          #chmod 600 public_key.pem  # Secure the public key file
+          cat public_key.pem  # Only for debugging purposes; remove after testing
+          
           # Verify the artifacts
           in-toto-verify --layout layout.json --key public_key.pem
 
