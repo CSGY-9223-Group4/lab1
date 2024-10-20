@@ -72,7 +72,8 @@ jobs:
       uses: actions/attest@v1
       with:
         subject-path: artifacts/image.spdx.json
-        predicate-type: https://in-toto.io/Statement
+        #predicate-type: https://in-toto.io/Statement
+        predicate-type: https://in-toto.io/attestation/release/v0.1
         predicate-path: attestation_predicate.json
         github-token: ${{ secrets.GITHUB_TOKEN }}
 
