@@ -51,12 +51,11 @@ jobs:
     - name: Attest the SBOM artifact
       uses: actions/attest@v1
       with:
-        intoto_private_key: ${{ secrets.INTOTOPRIVATE }}  # Private key for signing
-        intoto_public_key: ${{ secrets.INTOTOPUB }}        # Public key for verification
-        artifact_path: artifacts/image.spdx.json            # Path to the SBOM artifact
-        link_name: sbom-attestation                         # Custom link name for the attestation
-        predicate_type: https://in-toto.io/Statement       # Specify the predicate type
         subject-path: artifacts/image.spdx.json            # Provide the subject path for the artifact
+        predicate-type: https://in-toto.io/Statement       # Specify the predicate type
+        predicate: '{"predicateType": "https://in-toto.io/Statement", "subject": [{"name": "artifacts/image.spdx.json"}], "claim": {"summary": "SBOM generated and attested."}}'  # Customize the predicate
+        push-to-registry: false                             # Set to true if you want to push to a registry
+        show-summary: true                                   # Show summary of the attestation
 
     - name: Upload attestation
       uses: actions/upload-artifact@v4
