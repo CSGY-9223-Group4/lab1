@@ -42,31 +42,16 @@ jobs:
         run: |
           pip install in-toto
 
-      - name: Check Private Key ID
-        run: |
-          echo "${{ secrets.INTOTOPRIVATE }}"
-
-
-      - name: Check Public Key Info
-        run: |
-          echo "${{ secrets.INTOTOPUB }}" 
-
-   
-
       - name: Create Private Key File
-        env:
-          IN_TOTO_PRIVATE_KEY: ${{ secrets.INTOTOPRIVATE }}
         run: |
-          echo "${IN_TOTO_PRIVATE_KEY}" > mykey.priv
+          echo "${{ secrets.INTOTOPRIVATE }}" > mykey.priv
           chmod 600 mykey.priv
 
       - name: Sign Artifact
         env:
           ANCHORE_SBOM_ACTION_PRIOR_ARTIFACT: image.spdx.json
-
         run: |
           set -e
-          in-toto-sign -f layout.json --key <(echo "${{ secrets.INTOTOPRIVATE }}") -m /tmp/sbom-action-FRXq7j/image.spdx.json -p /tmp/sbom-action-FRXq7j/image.spdx.json
-  
-            
-        
+          # List the contents to confirm file paths
+          ls -al /tmp/sbom-action-*/image.spdx.json
+          in-toto-sign -f layout.json --key mykey.priv -m /tmp/sbom-action-*/image.spdx.json -p /tmp/sbom-action-*/image.spdx.json
