@@ -60,6 +60,9 @@ jobs:
           }
         }' > attestation_predicate.json
 
+    - name: Validate JSON
+      run: jq . attestation_predicate.json || echo "Invalid JSON"
+
     - name: Display Attestation Predicate
       run: cat attestation_predicate.json  # Print to verify JSON format
 
