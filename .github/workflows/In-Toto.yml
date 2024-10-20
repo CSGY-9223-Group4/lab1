@@ -15,6 +15,16 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      - name: List Root Directory
+        run: |
+          echo "Contents of the root directory:"
+          ls -al || true  # List all contents of the root directory
+
+      - name: List Configs Directory
+        run: |
+          echo "Listing all contents of the configs directory:"
+          ls -al configs || true  # List all contents of the configs directory
+
       - name: Install In-Toto
         run: |
           sudo apt-get update
@@ -23,11 +33,6 @@ jobs:
 
       - name: Generate Metadata for Build
         id: build
-        #run: |
-        #  # Archive the entire src folder
-        #  tar -czf output-artifact.tar.gz src  # Included the entire ./src folder
-        #  # Create in-toto metadata using the private key from GitHub Secrets
-        #  in-toto-record -n build --products output-artifact.tar.gz --key <(echo "${{ secrets.INTOTOPRIVATE }}")
 
         run: |
           set -e
@@ -41,10 +46,6 @@ jobs:
 
       - name: Generate Metadata for Test
         id: test
-        #run: |
-        #  # Run tests here
-        #  # Create in-toto metadata using the private key from GitHub Secrets
-        #  in-toto-record -n test --products test-results.xml --key <(echo "${{ secrets.INTOTOPRIVATE }}")
         
         run: |
           set -e
@@ -59,11 +60,6 @@ jobs:
 
       - name: Generate Metadata for Deploy
         id: deploy
-        #run: |
-          # Deploy your artifact here
-          # Create in-toto metadata using the private key from GitHub Secrets
-          #in-toto-record -n deploy --products deployed-artifact --key <(echo "${{ secrets.INTOTOPRIVATE }}")
-          
         run: |
           set -e
           echo "Deploying artifacts..."
@@ -74,14 +70,28 @@ jobs:
           echo "Generating in-toto metadata for deploy..."
           in-toto-record stop -n deploy --products deployed-artifact --signing-key private_key.pem
 
-      - name: Verify Artifacts
-        run: |
-          # Verify the artifacts using the public key from GitHub Secrets
-          #in-toto-verify --layout layout.json --key <(echo "${{ secrets.INTOTOPUB }}")
+   #   - name: Verify Artifacts
+   #     run: |
+   #       # Verify the artifacts using the public key from GitHub Secrets
+   #       #in-toto-verify --layout layout.json --key <(echo "${{ secrets.INTOTOPUB }}")
 
+   #       set -e
+   #       echo "Verifying artifacts..."
+   #       # Write the public key to a file
+   #       printf "%s" "${{ secrets.INTOTOPUB }}" > public_key.pem
+   #       #chmod 600 public_key.pem  # Secure the public key file
+   #       cat public_key.pem  # Only for debugging purposes; remove after testing
+          
+   #       # Verify the artifacts
+   #       in-toto-verify --layout layout.json --key public_key.pem
+
+      - name: Verify the artifacts using the public key from GitHub Secrets
+        run: |
           set -e
           echo "Verifying artifacts..."
+          
+          # Write the public key to a file
           printf "%s" "${{ secrets.INTOTOPUB }}" > public_key.pem
-          chmod 600 public_key.pem  # Secure the private key file
-          in-toto-verify --layout layout.json --key public_key.pem
-
+          
+          # Verify the artifacts
+          in-toto-verify --layout configs/layout.json --verification-keys public_key.pem
