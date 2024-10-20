@@ -8,6 +8,8 @@ on:
 permissions:
   contents: write # Required to upload to the Dependency submission API
   statuses: write  # Allows writing commit statuses
+  id-token: write
+  issues: write    # Add this permission to create attestation resources
 
 jobs:
   Anchore-Build-Scan:
