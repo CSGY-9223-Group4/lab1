@@ -82,5 +82,6 @@ jobs:
           set -e
           echo "Verifying artifacts..."
           echo "${{ secrets.INTOTOPUB }}" > public_key.pem
+          chmod 600 public_key.pem  # Secure the private key file
           in-toto-verify --layout layout.json --key public_key.pem
 
