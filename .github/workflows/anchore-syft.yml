@@ -4,63 +4,60 @@ on:
   push:
     branches: "**"
 
-# Adjusted permissions to follow least privilege access
 permissions:
-  contents: write # Required to upload to the Dependency submission API
-  statuses: write  # Allows writing commit statuses
   id-token: write
-  issues: write    # Add this permission to create attestation resources
 
 jobs:
   Anchore-Build-Scan:
+    permissions:
+      contents: write  # Required to upload to the Dependency submission API
+      id-token: write   # Ensure this permission is also set here
+
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout the code
-        uses: actions/checkout@v4
-        with:
-          ref: main  # or the branch where configs exist
+    - name: Checkout the code
+      uses: actions/checkout@v4
 
-      - name: Build the Docker image
-        run: docker build . --file Dockerfile --tag localbuild/testimage:latest
+    - name: Build the Docker image
+      run: docker build . --file Dockerfile --tag localbuild/testimage:latest
 
-      - name: Scan the image and upload dependency results
-        id: sbom_scan
-        uses: anchore/sbom-action@latest
-        with:
-          image: "localbuild/testimage:latest"
-          artifact-name: image.spdx.json
-          dependency-snapshot: true
+    - name: Scan the image and upload dependency results
+      id: sbom_scan
+      uses: anchore/sbom-action@latest  # Update to the latest version
+      with:
+        image: "localbuild/testimage:latest"
+        artifact-name: image.spdx.json
+        dependency-snapshot: true
 
-      - name: List SBOM Output Directory
-        run: |
-          echo "Contents of the SBOM action output directory:"
-          ls -al /tmp/sbom-action-* || true
+    - name: List SBOM Output Directory
+      run: |
+        echo "Contents of the SBOM action output directory:"
+        ls -al /tmp/sbom-action-* || true
 
-      - name: Upload SBOM artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: sbom
-          path: /tmp/sbom-action-*/image.spdx.json
+    - name: Create artifacts directory
+      run: mkdir -p artifacts
 
-      - name: Install in-toto
-        run: |
-          pip install in-toto
+    - name: Move SBOM artifact
+      run: |
+        mv /tmp/sbom-action-*/image.spdx.json artifacts/image.spdx.json
 
-      - name: Create Private Key File
-        run: |
-          echo "${{ secrets.INTOTOPRIVATE }}" > mykey.priv
-          chmod 600 mykey.priv
+    - name: Upload SBOM artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: sbom
+        path: artifacts/image.spdx.json  # Path to the SBOM artifact in the artifacts folder
 
-      - name: Verify Artifacts
-        run: |
-          set -e
-          echo "Verifying artifacts..."
-          echo "Contents of layout.json:"
-          cat configs/layout.json || true
-          
-          # Write the public key to a file
-          printf "%s" "${{ secrets.INTOTOPUB }}" > public_key.pem
-          
-          # Verify the artifacts
-          in-toto-verify --layout configs/layout.json --verification-keys public_key.pem
+    - name: Attest the SBOM artifact
+      uses: actions/attest@v1
+      with:
+        subject-path: artifacts/image.spdx.json  # Correct input
+        predicate-type: https://in-toto.io/Statement
+        predicate: '{"predicateType": "https://in-toto.io/Predicate/Attestation", "subject": [{"name": "artifacts/image.spdx.json"}], "claim": {"summary": "SBOM generated successfully."}}'  # Custom predicate
+        github-token: ${{ secrets.GITHUB_TOKEN }}  # Pass the GitHub token
 
+    - name: Upload attestation
+      uses: actions/upload-artifact@v4
+      with:
+        name: sbom-attestation
+        path: artifacts/  # Specify the path to the attestation file
