@@ -37,7 +37,7 @@ jobs:
           echo "${{ secrets.INTOTOPRIVATE }}" > private_key.pem
           in-toto-record start -n build --signing-key private_key.pem
           echo "Generating in-toto metadata for build..."
-          in-toto-record stop -n build --products output-artifact.tar.gz
+          in-toto-record stop -n build --products output-artifact.tar.gz --signing-key private_key.pem
 
       - name: Generate Metadata for Test
         id: test
