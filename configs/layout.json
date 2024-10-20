@@ -1,0 +1,23 @@
+{
+  "layout": {
+    "steps": [
+      {
+        "name": "build",
+        "expected_parameters": {
+          "source": "https://github.com/CSGY-9223-Group4/lab1/repo.git"    #"source": "https://github.com/your/repo.git"
+        },
+        "products": ["output-artifact.tar.gz"]
+      },
+      {
+        "name": "test",
+        "expected_parameters": {},
+        "products": ["test-results.xml"]
+      },
+      {
+        "name": "deploy",
+        "expected_parameters": {},
+        "products": ["deployed-artifact"]
+      }
+    ]
+  }
+}
