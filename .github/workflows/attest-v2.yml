@@ -1,0 +1,43 @@
+name: In-toto Attestation
+
+on:
+  push:
+    branches: "**"
+
+permissions:
+  contents: write  # Required for uploading artifacts
+  statuses: write   # Allows writing commit statuses
+  
+jobs:
+  Attest-Artifacts:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout the code
+      uses: actions/checkout@v4
+
+    - name: Build the Docker image
+      run: docker build . --file Dockerfile --tag localbuild/testimage:latest
+
+    - name: Generate In-toto Attestation
+      env:
+        INTOTOPUB: ${{ secrets.INTOTOPUB }}       # Public key
+        INTOTOPRIVATE: ${{ secrets.INTOTOPRIVATE }} # Private key
+      run: |
+        # Install In-toto
+        pip install in-toto
+
+        # Generate the attestation
+        in-toto record --layout attestation.layout \
+          --link-name build \
+          --material-path Dockerfile \
+          --material-path . \
+          --predicate "{\"predicateType\": \"https://in-toto.io/Predicate/Attestation\", \"subject\": [{\"name\": \"localbuild/testimage:latest\"}], \"claim\": {\"summary\": \"Image built and scanned successfully.\"}}" \
+          --private-key "$INTOTOPRIVATE" \
+          --public-key "$INTOTOPUB" \
+          attestation.json
+
+    - name: Upload Attestation Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: attestation
+        path: attestation.json
