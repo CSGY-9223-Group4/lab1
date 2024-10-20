@@ -34,7 +34,7 @@ jobs:
           echo "Archiving source code..."
           tar -czf output-artifact.tar.gz src
           echo "Starting in-toto record for build..."
-          in-toto-record start build --key <(echo "${{ secrets.INTOTOPRIVATE }}")
+          in-toto-record start -n build --key <(echo "${{ secrets.INTOTOPRIVATE }}")
           echo "Generating in-toto metadata for build..."
           in-toto-record stop --products output-artifact.tar.gz
 
