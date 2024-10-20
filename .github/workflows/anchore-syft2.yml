@@ -1,0 +1,63 @@
+name: Anchore Syft SBOM scan2
+
+on:
+  push:
+    branches: "**"
+
+permissions:
+  id-token: write
+
+jobs:
+  Anchore-Build-Scan:
+    permissions:
+      contents: write  # Required to upload to the Dependency submission API
+      id-token: write   # Ensure this permission is also set here
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout the code
+      uses: actions/checkout@v4
+
+    - name: Build the Docker image
+      run: docker build . --file Dockerfile --tag localbuild/testimage:latest
+
+    - name: Scan the image and upload dependency results
+      id: sbom_scan
+      uses: anchore/sbom-action@latest  # Update to the latest version
+      with:
+        image: "localbuild/testimage:latest"
+        artifact-name: image.spdx.json
+        dependency-snapshot: true
+
+    - name: List SBOM Output Directory
+      run: |
+        echo "Contents of the SBOM action output directory:"
+        ls -al /tmp/sbom-action-* || true
+
+    - name: Create artifacts directory
+      run: mkdir -p artifacts
+
+    - name: Move SBOM artifact
+      run: |
+        mv /tmp/sbom-action-*/image.spdx.json artifacts/image.spdx.json
+
+    - name: Upload SBOM artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: sbom
+        path: artifacts/image.spdx.json  # Path to the SBOM artifact in the artifacts folder
+
+    - name: Attest the SBOM artifact
+      uses: actions/attest@v1
+      with:
+        subject-path: artifacts/image.spdx.json  # Correct input
+        predicate-type: https://in-toto.io/Statement
+        predicate: '{"predicateType": "https://in-toto.io/Predicate/Attestation", "subject": [{"name": "artifacts/image.spdx.json"}], "claim": {"summary": "SBOM generated successfully."}}'  # Custom predicate
+        github-token: ${{ secrets.GITHUB_TOKEN }}  # Pass the GitHub token
+
+    - name: Upload attestation
+      uses: actions/upload-artifact@v4
+      with:
+        name: sbom-attestation
+        path: artifacts/  # Specify the path to the attestation file
