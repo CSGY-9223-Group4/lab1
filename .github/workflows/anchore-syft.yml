@@ -54,4 +54,4 @@ jobs:
           set -e
           # List the contents to confirm file paths
           ls -al /tmp/sbom-action-*/image.spdx.json
-          in-toto-sign -f layout.json --key mykey.priv -m /tmp/sbom-action-*/image.spdx.json -p /tmp/sbom-action-*/image.spdx.json
+          in-toto-sign -f layout.json --key mykey.priv --material /tmp/sbom-action-*/image.spdx.json --product /tmp/sbom-action-*/image.spdx.json
