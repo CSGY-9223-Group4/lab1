@@ -1,18 +1,18 @@
-name: Anchore Syft SBOM scan
+name: Anchore Syft SBOM scan (2)
 
 on:
   push:
     branches: "**"
 
 permissions:
-    id-token: write
+  id-token: write
 
 jobs:
   Anchore-Build-Scan:
     permissions:
-      contents: write # Required to upload to the Dependency submission API
-      id-token: write  # Ensure this permission is also set here 
-      
+      contents: write  # Required to upload to the Dependency submission API
+      id-token: write   # Ensure this permission is also set here
+
     runs-on: ubuntu-latest
 
     steps:
@@ -24,7 +24,7 @@ jobs:
 
     - name: Scan the image and upload dependency results
       id: sbom_scan
-      uses: anchore/sbom-action@latest # Update to the latest version
+      uses: anchore/sbom-action@latest  # Update to the latest version
       with:
         image: "localbuild/testimage:latest"
         artifact-name: image.spdx.json
@@ -46,28 +46,18 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: sbom
-        path: artifacts/image.spdx.json # Path to the SBOM artifact in the artifacts folder
+        path: artifacts/image.spdx.json  # Path to the SBOM artifact in the artifacts folder
 
     - name: Attest the SBOM artifact
       uses: actions/attest@v1
       with:
-        #intoto_private_key: ${{ secrets.INTOTOPRIVATE }}
-        #intoto_public_key: ${{ secrets.INTOTOPUB }}
-        #artifact_path: artifacts/image.spdx.json # Path to the SBOM artifact
-        #link_name: sbom-attestation
-        #predicate_type: https://in-toto.io/Statement
-        
-        #subject-path: artifacts/image.spdx.json  # Provide the path to the artifact
-        #predicate-type: https://in-toto.io/Statement
-        intoto-private-key: ${{ secrets.INTOTOPRIVATE }}
-        intoto-public-key: ${{ secrets.INTOTOPUB }}
-
         subject-path: artifacts/image.spdx.json  # Correct input
         predicate-type: https://in-toto.io/Statement
         predicate: '{"predicateType": "https://in-toto.io/Predicate/Attestation", "subject": [{"name": "artifacts/image.spdx.json"}], "claim": {"summary": "SBOM generated successfully."}}'  # Custom predicate
+        github-token: ${{ secrets.GITHUB_TOKEN }}  # Pass the GitHub token
 
     - name: Upload attestation
       uses: actions/upload-artifact@v4
       with:
         name: sbom-attestation
-        path: artifacts/ # Specify the path to the attestation file
+        path: artifacts/  # Specify the path to the attestation file
