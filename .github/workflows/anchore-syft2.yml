@@ -11,7 +11,7 @@ jobs:
   Anchore-Build-Scan:
     permissions:
       contents: write  # Required to upload to the Dependency submission API
-      id-token: write   # Ensure this permission is also set here
+      id-token: write   # Required for attest actions
 
     runs-on: ubuntu-latest
 
@@ -24,7 +24,7 @@ jobs:
 
     - name: Scan the image and upload dependency results
       id: sbom_scan
-      uses: anchore/sbom-action@latest  # Update to the latest version
+      uses: anchore/sbom-action@latest
       with:
         image: "localbuild/testimage:latest"
         artifact-name: image.spdx.json
@@ -46,18 +46,18 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: sbom
-        path: artifacts/image.spdx.json  # Path to the SBOM artifact in the artifacts folder
+        path: artifacts/image.spdx.json
 
     - name: Attest the SBOM artifact
       uses: actions/attest@v1
       with:
-        subject-path: artifacts/image.spdx.json  # Correct input
+        subject-path: artifacts/image.spdx.json
         predicate-type: https://in-toto.io/Statement
-        predicate: '{"predicateType": "https://in-toto.io/Predicate/Attestation", "subject": [{"name": "artifacts/image.spdx.json"}], "claim": {"summary": "SBOM generated successfully."}}'  # Custom predicate
+        predicate: '{"predicateType": "https://in-toto.io/Predicate/Attestation", "subject": [{"name": "artifacts/image.spdx.json"}], "claim": {"summary": "SBOM generated successfully."}}'
         github-token: ${{ secrets.GITHUB_TOKEN }}  # Pass the GitHub token
 
     - name: Upload attestation
       uses: actions/upload-artifact@v4
       with:
         name: sbom-attestation
-        path: artifacts/  # Specify the path to the attestation file
+        path: artifacts/
