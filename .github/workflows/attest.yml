@@ -5,12 +5,14 @@ on:
     branches: "**"
 
 permissions:
-    id-token: write
+  statuses: write   # Allows writing commit statuses
 
 jobs:
   Anchore-Build-Scan:
     permissions:
       contents: write # Required to upload to the Dependency submission API
+      id-token: write  # Add this line to allow id-token permission
+      
     runs-on: ubuntu-latest
 
     steps:
