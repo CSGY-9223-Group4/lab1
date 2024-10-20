@@ -54,5 +54,5 @@ jobs:
           # Write the public key to a file
           printf "%s" "${{ secrets.INTOTOPUB }}" > public_key.pem
           # Verify the artifacts
-          in-toto-verify --layout layout.json --layout-key public_key.pem
+          in-toto-verify --layout configs/layout.json --verification-keys public_key.pem
 
