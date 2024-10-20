@@ -2,7 +2,7 @@ name: In-toto Attestation
 
 on:
   push:
-    branches: "**"
+    branches: "**"  # Trigger on all branches
 
 permissions:
   contents: write  # Required for uploading artifacts
@@ -18,14 +18,21 @@ jobs:
     - name: Build the Docker image
       run: docker build . --file Dockerfile --tag localbuild/testimage:latest
 
+    - name: Set up Python environment
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'  # Specify the Python version
+
+    - name: Install In-toto
+      run: |
+        python -m pip install --upgrade pip
+        pip install in-toto
+
     - name: Generate In-toto Attestation
       env:
         INTOTOPUB: ${{ secrets.INTOTOPUB }}       # Public key
         INTOTOPRIVATE: ${{ secrets.INTOTOPRIVATE }} # Private key
       run: |
-        # Install In-toto
-        pip install in-toto
-
         # Generate the attestation
         in-toto record --layout attestation.layout \
           --link-name build \
@@ -41,3 +48,4 @@ jobs:
       with:
         name: attestation
         path: attestation.json
+
