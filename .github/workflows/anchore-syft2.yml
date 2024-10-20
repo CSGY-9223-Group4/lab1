@@ -10,8 +10,8 @@ permissions:
 jobs:
   Anchore-Build-Scan:
     permissions:
-      contents: write  # Required to upload to the Dependency submission API
-      id-token: write   # Required for attest actions
+      contents: write
+      id-token: write
 
     runs-on: ubuntu-latest
 
@@ -56,16 +56,19 @@ jobs:
           "subject": [{"name": "artifacts/image.spdx.json"}],
           "claim": {
             "summary": "SBOM generated successfully.",
-            "commit": "'"$(date '+%Y-%m-%d %H:%M:%S')"'"  # Correctly add current date and time
+            "commit": "'"$(date '+%Y-%m-%d %H:%M:%S')"'"  # Add current date and time
           }
         }' > attestation_predicate.json
+
+    - name: Display Attestation Predicate
+      run: cat attestation_predicate.json  # Print to verify JSON format
 
     - name: Attest the SBOM artifact
       uses: actions/attest@v1
       with:
         subject-path: artifacts/image.spdx.json
         predicate-type: https://in-toto.io/Statement
-        predicate-path: attestation_predicate.json  # Use the created JSON file
+        predicate-path: attestation_predicate.json
         github-token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Upload attestation
