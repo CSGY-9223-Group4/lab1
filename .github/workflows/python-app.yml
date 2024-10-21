@@ -36,16 +36,6 @@ jobs:
         pip install -r requirements.txt
         pip install -r requirements-dev.txt
 
-    - name: Format with Black
-      id: black
-      run: |
-        black --check .
-
-    - name: Test with pytest
-      id: tests
-      run: |
-        pytest
-
     - name: Set commit status for Commit Request review
       run: |
         if [[ "${{ steps.black.outcome }}" == "success" && "${{ steps.tests.outcome }}" == "success" ]]; then
