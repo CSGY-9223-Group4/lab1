@@ -2,8 +2,7 @@ name: Anchore Syft SBOM scan2
 
 on:
   push:
-    paths:
-      - .github/workflows/test
+    branches: '**'
 
 permissions:
   id-token: write
