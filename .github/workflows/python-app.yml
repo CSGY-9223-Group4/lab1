@@ -36,6 +36,7 @@ jobs:
         pip install -r requirements.txt
         pip install -r requirements-dev.txt
 
+<<<<<<< HEAD
     - name: Format with Black
       id: black
       run: |
@@ -51,6 +52,8 @@ jobs:
       run: |
         pytest integration/
 
+=======
+>>>>>>> 56fb4fe (Remove unnecessary checks ;))
     - name: Set commit status for Commit Request review
       run: |
         if [[ "${{ steps.black.outcome }}" == "success" && "${{ steps.tests.outcome }}" == "success" ]]; then
