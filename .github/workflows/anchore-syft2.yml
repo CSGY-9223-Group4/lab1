@@ -10,12 +10,12 @@ permissions:
 
 jobs:
   Anchore-Build-Scan:
-    permissions:
-      contents: write
-      id-token: write
-      pull-requests: write
-      repository-projects: write
-
+    permissions: write-all
+      #contents: write
+      #id-token: write
+      #pull-requests: write
+      #repository-projects: write
+      
 
     runs-on: ubuntu-latest
     steps:
@@ -69,6 +69,14 @@ jobs:
     - name: Display Attestation Predicate
       run: cat attestation_predicate.json  # Print to verify JSON format
 
+    - name: get-token
+ 
+    - name: Get registration token
+      id: getRegToken
+      run: |
+        curl -X POST -H \"Accept: application/vnd.github.v3+json\"  -H 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' https://api.github.com/repos/myprofile/myrepo/actions/runners/registration-token
+ 
+        
     - name: Attest the SBOM artifact
       uses: actions/attest@v1
       with:
