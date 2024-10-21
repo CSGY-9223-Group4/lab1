@@ -1,0 +1,6 @@
+# Sample secrets for testing
+API_KEY=abcd1234efgh5678ijkl9012mnop3456
+DB_PASSWORD=my_super_secret_password_123!
+TOKEN=ghp_ABC12345def67890ghijklmnopqrst
+SSH_KEY=ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEArw...
+SECRET_KEY=SECRET-KEY-1234567890abcdef
