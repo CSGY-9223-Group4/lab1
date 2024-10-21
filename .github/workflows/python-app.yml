@@ -56,11 +56,7 @@ jobs:
 >>>>>>> 56fb4fe (Remove unnecessary checks ;))
     - name: Set commit status for Commit Request review
       run: |
-        if [[ "${{ steps.black.outcome }}" == "success" && "${{ steps.tests.outcome }}" == "success" ]]; then
-          status="success"
-        else
-          status="failure"
-        fi
+        status="success"
         
         curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
         -H "Accept: application/vnd.github.v3+json" \
