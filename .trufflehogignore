@@ -1,0 +1,7 @@
+README.md
+CONTRIBUTING.md
+CODE-OF-CONDUCT.md
+
+.github/workflows/*
+
+Pipfile.lock
