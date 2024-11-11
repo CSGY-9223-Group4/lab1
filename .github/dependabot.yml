@@ -8,7 +8,7 @@ updates:
     directory: "/"                    # Location of the requirements.txt file
     schedule:
       interval: "weekly"              # Check for updates weekly
-    open-pull-requests-limit: 10       # Limit the number of open PRs (optional)
+    open-pull-requests-limit: 15       # Limit the number of open PRs (optional)
     
   #  ignore:                           # Specify any packages to ignore (optional)
   #    - dependency-name: "some-package"  # Replace with actual package name
