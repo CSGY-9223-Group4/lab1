@@ -1,19 +1,12 @@
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support documentation.
-# Trivy to output results in SARIF format and only includes vulnerabilities of severity CRITICAL and HIGH.
-
 name: trivy
 
 on:
   push:
     branches:
       - '**'  # This will match all branches
-      
   pull_request:
     branches:
       - main
-      
   schedule:
     - cron: '29 13 * * 3'
 
@@ -21,78 +14,76 @@ permissions:
   contents: read    # Allows reading repository contents
   statuses: write   # Allows writing commit statuses
 
-
 jobs:
   build:
     permissions:
       contents: read # for actions/checkout to fetch code
       security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
       actions: read # only required for a private repository by github/codeql-action/upload-sarif to get the Action run status
-      
     name: Build
     runs-on: "ubuntu-20.04"
+
     steps:
+      # Step 1: Checkout code
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # Step 2: Build the Docker image from the Dockerfile
       - name: Build an image from Dockerfile
         run: |
           docker build -t docker.io/csgy-9223-group4/lab1:${{ github.sha }} .
 
+      # Step 3: Run Trivy vulnerability scanner
       - name: Run Trivy vulnerability scanner
-        #uses: aquasecurity/trivy-action@7b7aa264d83dc58691451798b4d117d53d21edfe
         uses: aquasecurity/trivy-action@0.20.0  # stable version
-        
         with:
-          #image-ref: 'docker.io/my-organization/my-app:${{ github.sha }}'
-          image-ref: 'docker.io/csgy-9223-group4/lab1:${{ github.sha }}'
-          
-          #format: 'template'
-          #template: '@/contrib/sarif.tpl'
-          
-          format: 'sarif'  # copied from https://github.com/aquasecurity/trivy-action
-          output: 'trivy-results.sarif'  # copied from https://github.com/aquasecurity/trivy-action
-          severity: 'CRITICAL,HIGH'
+          image-ref: 'docker.io/csgy-9223-group4/lab1:${{ github.sha }}' # Referencing the built image
+          format: 'sarif'  # Format for the scan results
+          output: 'trivy-results.sarif'  # Output file name
+          severity: 'CRITICAL,HIGH'  # Severity levels to be considered
 
+      # Step 4: Upload Trivy scan results to GitHub Security tab
       - name: Upload Trivy scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: 'trivy-results.sarif'
 
-# Lab 3 codes
+# Lab 3 codes - Cosign signing and SBOM generation
+
+      # Step 5: Set up Cosign for SBOM signing
       - name: Set up Cosign
         run: |
           curl -sSL https://github.com/sigstore/cosign/releases/download/v2.0.0/cosign-linux-amd64 -o cosign
           chmod +x cosign
           sudo mv cosign /usr/local/bin
 
-      # Step 3: Install Trivy
+      # Step 6: Install Trivy (if not installed already)
       - name: Install Trivy
         run: |
           curl -sSL https://github.com/aquasecurity/trivy/releases/download/v0.38.3/trivy_0.38.3_Linux-64bit.deb -o trivy.deb
           sudo dpkg -i trivy.deb
 
-      # Step 4: Cache Trivy DB
+      # Step 7: Cache Trivy DB to avoid repeated downloads
       - name: Cache Trivy DB
         uses: actions/cache@v2
         with:
           path: ~/.cache/trivy
-          key: trivy-db-${{ runner.os }}-v0.38.3 # use a fixed key that reflects the Trivy version
+          key: trivy-db-${{ runner.os }}-v0.38.3
           restore-keys: |
             trivy-db-${{ runner.os }}-
 
-      # Step 5: Generate SBOM with Trivy
+      # Step 8: Generate SBOM with Trivy
       - name: Generate SBOM with Trivy
         run: |
-          trivy sbom --config .trivy.yml my-docker-image
+          trivy sbom --config .trivy.yml docker.io/csgy-9223-group4/lab1:${{ github.sha }} > sbom.json
 
-      # Step 6: Sign the SBOM with Cosign
+      # Step 9: Sign the SBOM with Cosign
       - name: Sign the SBOM with Cosign
         run: |
           echo "${{ secrets.COSIGN_PRIVATE_KEY }}" > cosign.key
           cosign sign --key cosign.key sbom.json
 
-      # Step 7: Upload SBOM and signature as artifacts
+      # Step 10: Upload SBOM and signature as artifacts
       - name: Upload SBOM and signature as artifacts
         uses: actions/upload-artifact@v3
         with:
