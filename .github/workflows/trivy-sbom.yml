@@ -33,7 +33,13 @@ jobs:
         run: |
           docker build -t docker.io/csgy-9223-group4/lab1:${{ github.sha }} .
 
-      # Step 3: Cache Trivy DB to avoid repeated downloads
+      # Step 3: Install Trivy (ensures Trivy is available for subsequent steps)
+      - name: Install Trivy
+        run: |
+          curl -sSL https://github.com/aquasecurity/trivy/releases/download/v0.38.3/trivy_0.38.3_Linux-64bit.deb -o trivy.deb
+          sudo dpkg -i trivy.deb
+
+      # Step 4: Cache Trivy DB to avoid repeated downloads
       - name: Cache Trivy DB
         uses: actions/cache@v2
         with:
@@ -42,15 +48,15 @@ jobs:
           restore-keys: |
             trivy-db-${{ runner.os }}-v0.38.3-
 
-      # Step 4: Retry Trivy DB download on failure
+      # Step 5: Retry Trivy DB download on failure
       - name: Retry Trivy DB download
         run: |
           for i in {1..5}; do
             trivy sbom --config .trivy.yml docker.io/csgy-9223-group4/lab1:${{ github.sha }} > sbom.json && break || sleep 15
           done
 
-      # Step 5: Upload SBOM and signature as artifacts
-      - name: Upload SBOM and signature as artifacts
+      # Step 6: Upload SBOM as an artifact
+      - name: Upload SBOM as artifact
         uses: actions/upload-artifact@v3
         with:
           name: sbom
