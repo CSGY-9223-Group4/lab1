@@ -18,7 +18,7 @@ jobs:
   build:
     permissions:
       contents: read # for actions/checkout to fetch code
-      security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
+      security-events: write # for github/codeql-action/upload-sarif to upload SBOM file
       actions: read # only required for a private repository by github/codeql-action/upload-sarif to get the Action run status
     name: Build
     runs-on: "ubuntu-20.04"
@@ -41,21 +41,30 @@ jobs:
 
       # Step 4: Cache Trivy DB to avoid repeated downloads
       - name: Cache Trivy DB
-        uses: actions/cache@v2
+        uses: actions/cache@v3  # Updated to v3
         with:
           path: ~/.cache/trivy
           key: trivy-db-${{ runner.os }}-v0.38.3-${{ github.sha }}
           restore-keys: |
             trivy-db-${{ runner.os }}-v0.38.3-
 
-      # Step 5: Retry Trivy DB download on failure
-      - name: Retry Trivy DB download
+      # Step 5: Generate SBOM with Trivy and log output
+      - name: Generate SBOM with Trivy
         run: |
-          for i in {1..5}; do
-            trivy sbom --config .trivy.yml docker.io/csgy-9223-group4/lab1:${{ github.sha }} > sbom.json && break || sleep 15
-          done
+          trivy sbom --config .trivy.yml docker.io/csgy-9223-group4/lab1:${{ github.sha }} > sbom.json
+          cat sbom.json  # Output the contents of the SBOM file to logs for debugging
 
-      # Step 6: Upload SBOM as an artifact
+      # Step 6: Check if the SBOM file exists and has content
+      - name: Check if SBOM file exists and has content
+        run: |
+          if [ -f sbom.json ]; then
+            echo "SBOM file exists with size: $(stat -c %s sbom.json)"
+          else
+            echo "SBOM file not found!"
+            exit 1
+          fi
+
+      # Step 7: Upload SBOM as artifact
       - name: Upload SBOM as artifact
         uses: actions/upload-artifact@v3
         with:
