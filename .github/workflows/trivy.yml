@@ -1,7 +1,7 @@
 # This workflow uses actions that are not certified by GitHub.
 # They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
+# separate terms of service, privacy policy, and support documentation.
+# Trivy to output results in SARIF format and only includes vulnerabilities of severity CRITICAL and HIGH.
 
 name: trivy
 
@@ -58,3 +58,28 @@ jobs:
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: 'trivy-results.sarif'
+
+# Lab 3 codes
+      - name: Install cosign
+        run: |
+          COSIGN_VERSION=v1.5.2
+          curl -LO https://github.com/sigstore/cosign/releases/download/${COSIGN_VERSION}/cosign-linux-amd64
+          chmod +x cosign-linux-amd64
+          sudo mv cosign-linux-amd64 /usr/local/bin/cosign
+          
+      - name: Generate SBOM
+        uses: anchore/syft-action@v0.6.0
+        with:
+          image: 'docker.io/csgy-9223-group4/lab1:${{ github.sha }}'
+          output-file: 'sbom.json'
+
+      - name: Sign SBOM
+        run: |
+          cosign sign-blob --key ${{ secrets.COSIGN_KEY }} sbom.json
+          mv sbom.json.sig sbom-signed.json
+
+      - name: Upload SBOM
+        uses: actions/upload-artifact@v3
+        with:
+          name: sbom
+          path: sbom-signed.json
