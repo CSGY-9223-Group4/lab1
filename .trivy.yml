@@ -1,0 +1,3 @@
+# .trivy.yml
+format: cyclonedx
+output: sbom.json
