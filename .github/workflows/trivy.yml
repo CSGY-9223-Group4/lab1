@@ -77,6 +77,14 @@ jobs:
           curl -sSL https://github.com/aquasecurity/trivy/releases/download/v0.38.3/trivy_0.38.3_Linux-64bit.deb -o trivy.deb
           sudo dpkg -i trivy.deb
 
+      - name: Cache Trivy DB
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/trivy
+          key: ${{ runner.os }}-trivy-db-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-trivy-db-
+
       - name: Generate SBOM with Trivy
         run: |
           trivy sbom --config .trivy.yml my-docker-image
