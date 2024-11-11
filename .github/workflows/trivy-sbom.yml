@@ -1,72 +1,109 @@
+#Trivy CycloneDX SBOM Scan and Cosign Signing
 name: trivy-sbom
 
 on:
   push:
-    branches:
-      - '**'  # This will match all branches
-  pull_request:
-    branches:
-      - main
-  schedule:
-    - cron: '29 13 * * 3'
+    branches: '**'
 
 permissions:
-  contents: read    # Allows reading repository contents
-  statuses: write   # Allows writing commit statuses
+  id-token: write
+  contents: write
 
 jobs:
-  build:
-    permissions:
-      contents: read # for actions/checkout to fetch code
-      security-events: write # for github/codeql-action/upload-sarif to upload SBOM file
-      actions: read # only required for a private repository by github/codeql-action/upload-sarif to get the Action run status
-    name: Build
-    runs-on: "ubuntu-20.04"
+  trivy-sbom-scan-and-sign:
+    permissions: write-all
 
+    runs-on: ubuntu-latest
     steps:
-      # Step 1: Checkout code
-      - name: Checkout code
-        uses: actions/checkout@v4
+    - name: Checkout the code
+      uses: actions/checkout@v4
 
-      # Step 2: Build the Docker image from Dockerfile
-      - name: Build an image from Dockerfile
-        run: |
-          docker build -t docker.io/csgy-9223-group4/lab1:${{ github.sha }} .
+    - name: Build the Docker image
+      run: docker build . --file Dockerfile --tag localbuild/testimage:latest
 
-      # Step 3: Install Trivy (ensures Trivy is available for subsequent steps)
-      - name: Install Trivy
-        run: |
-          curl -sSL https://github.com/aquasecurity/trivy/releases/download/v0.38.3/trivy_0.38.3_Linux-64bit.deb -o trivy.deb
-          sudo dpkg -i trivy.deb
+    - name: Install Trivy
+      run: |
+        curl -sSL https://github.com/aquasecurity/trivy/releases/download/v0.38.3/trivy_0.38.3_Linux-64bit.deb -o trivy.deb
+        sudo dpkg -i trivy.deb
 
-      # Step 4: Cache Trivy DB to avoid repeated downloads
-      - name: Cache Trivy DB
-        uses: actions/cache@v3  # Updated to v3
-        with:
-          path: ~/.cache/trivy
-          key: trivy-db-${{ runner.os }}-v0.38.3-${{ github.sha }}
-          restore-keys: |
-            trivy-db-${{ runner.os }}-v0.38.3-
+    - name: Cache Trivy DB
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/trivy
+        key: trivy-db-${{ runner.os }}-v0.38.3
+        restore-keys: |
+          trivy-db-${{ runner.os }}-
 
-      # Step 5: Generate SBOM with Trivy and log output
-      - name: Generate SBOM with Trivy
-        run: |
-          trivy sbom --config .trivy.yml docker.io/csgy-9223-group4/lab1:${{ github.sha }} > sbom.json
-          cat sbom.json  # Output the contents of the SBOM file to logs for debugging
+    - name: Generate CycloneDX SBOM with Trivy
+      run: |
+        trivy sbom --format cyclonedx --output sbom.json localbuild/testimage:latest
 
-      # Step 6: Check if the SBOM file exists and has content
-      - name: Check if SBOM file exists and has content
-        run: |
-          if [ -f sbom.json ]; then
-            echo "SBOM file exists with size: $(stat -c %s sbom.json)"
-          else
-            echo "SBOM file not found!"
-            exit 1
-          fi
+    - name: Create artifacts directory
+      run: mkdir -p artifacts
 
-      # Step 7: Upload SBOM as artifact
-      - name: Upload SBOM as artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: sbom
-          path: sbom.json
+    - name: Move SBOM artifact
+      run: mv sbom.json artifacts/sbom.json
+
+    - name: Upload SBOM artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: sbom
+        path: artifacts/sbom.json
+
+    - name: Set up Cosign
+      run: |
+        curl -sSL https://github.com/sigstore/cosign/releases/download/v2.0.0/cosign-linux-amd64 -o cosign
+        chmod +x cosign
+        sudo mv cosign /usr/local/bin
+
+    - name: Generate a new Cosign key pair (if not already generated)
+      run: |
+        cosign generate-key-pair ./cosign.key
+        echo "COSIGN_PRIVATE_KEY=$(cat ./cosign.key)" >> $GITHUB_ENV
+
+    - name: Sign the SBOM with Cosign
+      run: |
+        cosign sign --key ./cosign.key artifacts/sbom.json
+
+    - name: Upload Signed SBOM
+      uses: actions/upload-artifact@v4
+      with:
+        name: signed-sbom
+        path: artifacts/sbom.json.sig
+
+    - name: Create Attestation Predicate
+      id: create_predicate
+      run: |
+        echo '{
+          "predicateType": "https://in-toto.io/attestation/release/v0.1",
+          "subject": [{"name": "artifacts/sbom.json"}],
+          "claim": {
+            "summary": "CycloneDX SBOM generated and signed successfully.",
+            "commit": "'"$(date '+%Y-%m-%d %H:%M:%S')"'"
+          }
+        }' > attestation_predicate.json
+
+    - name: Validate JSON
+      run: jq . attestation_predicate.json || echo "Invalid JSON"
+
+    - name: Display Attestation Predicate
+      run: cat attestation_predicate.json
+
+    - name: Get registration token
+      id: getRegToken
+      run: |
+        curl -X POST -H "Accept: application/vnd.github.v3+json" -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" https://api.github.com/repos/myprofile/myrepo/actions/runners/registration-token
+
+    - name: Attest the Signed SBOM Artifact
+      uses: actions/attest@v1
+      with:
+        subject-path: artifacts/sbom.json
+        predicate-type: "https://in-toto.io/attestation/release/v0.1"
+        predicate-path: attestation_predicate.json
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Upload Attestation
+      uses: actions/upload-artifact@v4
+      with:
+        name: sbom-attestation
+        path: attestation_predicate.json
