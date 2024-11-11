@@ -60,26 +60,38 @@ jobs:
           sarif_file: 'trivy-results.sarif'
 
 # Lab 3 codes
-      - name: Install cosign
+      - name: Set up Cosign
         run: |
-          COSIGN_VERSION=v1.5.2
-          curl -LO https://github.com/sigstore/cosign/releases/download/${COSIGN_VERSION}/cosign-linux-amd64
-          chmod +x cosign-linux-amd64
-          sudo mv cosign-linux-amd64 /usr/local/bin/cosign
-          
-      - name: Generate SBOM
-        uses: anchore/syft-action@v0.6.0
-        with:
-          image: 'docker.io/csgy-9223-group4/lab1:${{ github.sha }}'
-          output-file: 'sbom.json'
+          # Install Cosign
+          curl -sSL https://github.com/sigstore/cosign/releases/download/v2.0.0/cosign-linux-amd64 -o cosign
+          chmod +x cosign
+          sudo mv cosign /usr/local/bin
 
-      - name: Sign SBOM
+      - name: Set up GPG for Cosign (if using for signing verification)
         run: |
-          cosign sign-blob --key ${{ secrets.COSIGN_KEY }} sbom.json
-          mv sbom.json.sig sbom-signed.json
+          # Optionally, configure GPG (if needed for additional operations or verification)
+          # For Cosign, this is not strictly necessary unless you're using GPG signatures elsewhere
 
-      - name: Upload SBOM
+      - name: Install Trivy
+        run: |
+          curl -sSL https://github.com/aquasecurity/trivy/releases/download/v0.38.3/trivy_0.38.3_Linux-64bit.deb -o trivy.deb
+          sudo dpkg -i trivy.deb
+
+      - name: Generate SBOM with Trivy
+        run: |
+          trivy sbom --config .trivy.yml my-docker-image
+
+      - name: Sign the SBOM with Cosign
+        run: |
+          # Set up COSIGN_PRIVATE_KEY from GitHub secrets
+          echo "${{ secrets.COSIGN_PRIVATE_KEY }}" > cosign.key
+          cosign sign --key cosign.key sbom.json
+
+      - name: Upload SBOM and signature as artifacts
         uses: actions/upload-artifact@v3
         with:
           name: sbom
-          path: sbom-signed.json
+          path: |
+            sbom.json
+            sbom.json.sig
+
