@@ -1,0 +1,41 @@
+name: 'Trivy License Check'
+
+# Trigger the workflow on pull requests or pushes to the main branch
+on:
+  push:
+    branches:
+      - '**'  # This will match all branches
+      
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read            # Allow read-only access to the repository content (required for checkout)
+  id-token: write           # Needed for OIDC-based actions, if you're using GitHub OIDC for authentication
+  actions: read             # Grant read-only access to actions metadata (to allow action to run)
+  packages: read            # If the repository uses GitHub Packages, read access may be required (optional)
+  issues: none              # No need for issue-related permissions (set to 'none' if not needed)
+  deployments: none         # No need for deployment permissions (set to 'none' if not needed)
+  pull-requests: none       # No need for pull request permissions (set to 'none' if not needed)
+
+jobs:
+  license-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Trivy
+        uses: aquasecurity/trivy-action@v0.5.0
+        with:
+          scan-type: 'license'  # Specify that we are scanning for licenses
+          format: 'table'       # You can also use 'json' or 'github'
+          exit-code: 0          # Allows the action to run and report results without failing the build
+
+      - name: Upload Trivy License Scan Results
+        uses: actions/upload-artifact@v3
+        with:
+          name: trivy-license-results
+          path: trivy-report.json  # If you choose to generate a JSON report
