@@ -23,20 +23,18 @@ jobs:
 
     - name: Install Trivy
       run: |
-        curl -sSL https://github.com/aquasecurity/trivy/releases/download/v0.38.3/trivy_0.38.3_Linux-64bit.deb -o trivy.deb
+        curl -sSL https://github.com/aquasecurity/trivy/releases/download/v0.39.0/trivy_0.39.0_Linux-64bit.deb -o trivy.deb
         sudo dpkg -i trivy.deb
 
     - name: Cache Trivy DB
       uses: actions/cache@v3
       with:
         path: ~/.cache/trivy
-        key: trivy-db-${{ runner.os }}-v0.38.3
-        restore-keys: |
-          trivy-db-${{ runner.os }}-
+        key: trivy-db-${{ runner.os }}-v0.39.0
+        restore-keys: trivy-db-${{ runner.os }}-
 
     - name: Generate CycloneDX SBOM with Trivy
-      run: |
-        trivy sbom --format cyclonedx --output sbom.json localbuild/testimage:latest
+      run: trivy sbom --format cyclonedx --output sbom.json localbuild/testimage:latest
 
     - name: Create artifacts directory
       run: mkdir -p artifacts
