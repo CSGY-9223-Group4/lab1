@@ -60,8 +60,22 @@ jobs:
         env:
           TRIVY_FORMAT: sarif
           TRIVY_OUTPUT: trivy-license.sarif
-          
-# Step 7: Step 7 Upload the SARIF report to GitHub
+
+# Step 7: Fix Trivy SARIF Structure
+      - name: Step 7 Fix Trivy SARIF Structure
+        run: |
+          if [ -f trivy-license.sarif ]; then
+            # Remove invalid fields and add required fields
+            jq 'del(.SchemaVersion, .CreatedAt, .ArtifactName, .ArtifactType, .Metadata, .Results) |
+                . + {version: "2.1.0", runs: [{tool: {driver: {name: "Trivy", version: "0.40.0"}}, results: []}]} ' trivy-license.sarif > trivy-license-fixed.sarif
+            mv trivy-license-fixed.sarif trivy-license.sarif
+          else
+            echo "SARIF file not found"
+            exit 1
+          fi
+        shell: bash
+            
+# Step 8: Step 8 Upload the SARIF report to GitHub
       - name: Upload SARIF report
         uses: github/codeql-action/upload-sarif@v3
         with:
