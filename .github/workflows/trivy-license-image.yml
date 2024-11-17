@@ -36,7 +36,7 @@ jobs:
         
         uses: aquasecurity/trivy-action@0.20.0
         with:
-          image: python:3.4-alpine
+          image: "localbuild/testimage:latest"
           format: json
           scanners: license
           
