@@ -27,6 +27,19 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: List files in sbom directory (before download)
+        run: |
+          echo "Listing files in sbom directory (before download):"
+          ls -al sbom/ || echo "No sbom directory found. Will attempt artifact download."
+
+      - name: List available artifacts
+        run: |
+          echo "Listing available artifacts for this run..."
+          curl -s \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts" | jq .
+
+
       - name: Download SBOM artifact from previous workflow
         uses: actions/download-artifact@v4
         with:
