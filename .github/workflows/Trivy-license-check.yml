@@ -5,114 +5,70 @@ on:
     branches: '**'
 
 permissions:
-  contents: read       # Only read access to repository contents (source code)
-  id-token: write      # Allows for the generation of GitHub OIDC tokens (used for attestation)
-  actions: read        # Read access to actions
-  issues: write        # Write access for posting issues (if required)
-  checks: write        # Write access for creating check runs (if required)
+  id-token: write
+  contents: write
 
 jobs:
   Anchore-Build-Scan:
-    permissions: write-all # to be revised
+    permissions: write-all
 
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout the code
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 1  # Shallow clone to reduce the amount of data pulled, improving speed and security.
+      - name: Checkout the code
+        uses: actions/checkout@v4
 
-    - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag localbuild/testimage:latest
+      - name: Build the Docker image
+        run: docker build . --file Dockerfile --tag localbuild/testimage:latest
 
-    - name: Scan the image and upload dependency results (SBOM)
-      id: sbom_scan
-      uses: anchore/sbom-action@latest
-      with:
-        image: "localbuild/testimage:latest"
-        artifact-name: image.spdx.json
-        dependency-snapshot: true
+      - name: Scan the image and upload dependency results
+        id: sbom_scan
+        uses: anchore/sbom-action@latest
+        with:
+          image: "localbuild/testimage:latest"
+          artifact-name: image.spdx.json
+          dependency-snapshot: true
 
-    - name: List SBOM Output Directory
-      run: |
-        echo "Contents of the SBOM action output directory:"
-        ls -al /tmp/sbom-action-* || true
+      - name: List SBOM Output Directory
+        run: |
+          echo "Contents of the SBOM action output directory:"
+          ls -al /tmp/sbom-action-* || true
 
-    - name: Create artifacts directory
-      run: mkdir -p artifacts
+      - name: Create artifacts directory
+        run: mkdir -p artifacts
 
-    - name: Move SBOM artifact
-      run: |
-        mv /tmp/sbom-action-*/image.spdx.json artifacts/image.spdx.json
+      - name: Move SBOM artifact
+        run: |
+          mv /tmp/sbom-action-*/image.spdx.json artifacts/image.spdx.json
 
-    - name: Upload SBOM artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: sbom
-        path: artifacts/image.spdx.json
+      - name: Upload SBOM artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: artifacts/image.spdx.json
 
-    - name: Create Attestation Predicate
-      id: create_predicate
-      run: |
-        echo '{
-          "predicateType": "https://in-toto.io/attestation/release/v0.1",
-          "subject": [{"name": "artifacts/image.spdx.json"}],
-          "claim": {
-            "summary": "SBOM generated successfully.",
-            "commit": "'"$(date '+%Y-%m-%d %H:%M:%S')"'"
-          }
-        }' > attestation_predicate.json
+      # New Step: Run Trivy License Check
+      - name: Run Trivy License Check
+        uses: aquasecurity/trivy-action@v0.20.0  # Make sure you're using the version you're working with
+        with:
+          image-ref: "localbuild/testimage:latest"  # Correct input for specifying the image
+          format: "json"  # Output format
+          scan-type: "license"  # Perform a license check
+          output: "trivy-license-report.json"  # Specify output file for the report
 
-    - name: Validate JSON
-      run: jq . attestation_predicate.json || echo "Invalid JSON"
+      - name: Display Trivy License Report
+        run: |
+          echo "Displaying Trivy License Check results..."
+          cat trivy-license-report.json
 
-    - name: Display Attestation Predicate
-      run: cat attestation_predicate.json  # Print to verify JSON format
+      - name: Optional: Fail the build if GPL-3.0 license is found
+        run: |
+          if grep -q 'GPL-3.0' trivy-license-report.json; then
+            echo "GPL-3.0 license found in dependencies, which may be incompatible!"
+            exit 1
+          fi
 
-    - name: Get registration token
-      id: getRegToken
-      run: |
-        curl -X POST -H "Accept: application/vnd.github.v3+json" -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" https://api.github.com/repos/myprofile/myrepo/actions/runners/registration-token
-
-    - name: Attest the SBOM artifact
-      uses: actions/attest@v1
-      with:
-        subject-path: artifacts/image.spdx.json
-        predicate-type: "https://in-toto.io/attestation/release/v0.1"
-        predicate-path: attestation_predicate.json
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Upload attestation
-      uses: actions/upload-artifact@v4
-      with:
-        name: sbom-attestation
-        path: attestation_predicate.json  # Specify the path to the attestation file
-
-# New Step: Run Trivy License Check
-    - name: Run Trivy License Check
-      uses: aquasecurity/trivy-action@0.20.0  # stable version
-      with:
-        image: "localbuild/testimage:latest"
-        format: "json"
-        security-checks: "license"
-        output: "trivy-license-report.json"
-      
-    - name: Display Trivy License Report
-      run: |
-        echo "Displaying Trivy License Check results..."
-        cat trivy-license-report.json
-
-    - name: Fail the build if GPL-3.0 license is found
-      run: |
-        if grep -q 'GPL-3.0' trivy-license-report.json; then
-          echo "GPL-3.0 license found in dependencies, which may be incompatible!"
-          exit 1
-        fi
-
-    - name: Upload Trivy License Report
-      uses: actions/upload-artifact@v4
-      with:
-        name: trivy-license-report
-        path: trivy-license-report.json
-  
+      - name: Upload Trivy License Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-license-report
+          path: trivy-license-report.json
