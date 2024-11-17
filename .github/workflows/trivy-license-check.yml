@@ -28,9 +28,9 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Download SBOM artifact from previous workflow
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
-          name: docker-sbom-spdx  # Matching the artifact name used in the SBOM creation workflow
+          name: sbom  # Matching the artifact name used in the SBOM creation workflow
           path: sbom/             # Path where the SBOM file will be saved
 
       - name: Set up Trivy
