@@ -14,16 +14,16 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout the code
+# Step 1: Checkout the code
       - name: Checkout the code
         uses: actions/checkout@v4
 
 
-      # Step 2: Build the Docker image
+# Step 2: Build the Docker image
       - name: Build the Docker image
         run: docker build . --file Dockerfile --tag localbuild/testimage:latest
 
-      # Step 3: Generate SBOM using Anchore SBOM Action (CycloneDX format)
+# Step 3: Generate SBOM using Anchore SBOM Action (CycloneDX format)
       - name: Scan the image and upload dependency results
         id: sbom_scan
         uses: anchore/sbom-action@latest
@@ -54,12 +54,25 @@ jobs:
       #    scan-ref: .
       #    ignore-unfixed: false
       #    vuln-type: os,library
-      
+
+  # Step 5
       - name: Install Trivy
         run: |
           curl -sfL https://github.com/aquasecurity/trivy/releases/download/v0.20.0/trivy_0.20.0_Linux-64bit.tar.gz | tar xz -C /usr/local/bin
-      
+  
+  # Step 6    
       - name: Run Trivy License check using v20
+        run: |
+          # Ensure the SBOM file exists at the path and then run Trivy scan on it
+          SBOM_PATH=$(find /tmp -name "*.cyclonedx.json" | head -n 1)  # Dynamically find the SBOM file
+          echo "Found SBOM file at: $SBOM_PATH"
+          if [ -z "$SBOM_PATH" ]; then
+            echo "SBOM file not found, exiting..."
+            exit 1
+          fi
+          # Run Trivy scan on the SBOM file
+          trivy sbom "$SBOM_PATH" --format json --severity HIGH,CRITICAL --output trivy-license-report.json    
+        
         #uses: aquasecurity/trivy-action@0.20.0
         #with:
           #input: image.cyclonedx.json
@@ -70,9 +83,7 @@ jobs:
           #output: trivy-license-report.json
           #severity: HIGH,CRITICAL
           #list-all-pkgs: false
-        run: |
-          # Ensure the SBOM file exists at the path and then run Trivy scan on it
-          trivy sbom $SBOM_PATH --format json --severity HIGH,CRITICAL --output trivy-license-report.json
+    
 
 
       # Step 8: Display Trivy License Report
