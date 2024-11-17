@@ -45,7 +45,11 @@ jobs:
       - name: Install Trivy
         run: |
           curl -sfL https://github.com/aquasecurity/trivy/releases/download/v0.20.0/trivy_0.20.0_Linux-64bit.tar.gz | tar xz -C /usr/local/bin
-  
+
+      - name: Check for SBOM file
+        run: |
+          ls -l /home/runner/work/lab1/lab1
+    
   # Step 6    
       - name: Run Trivy License check using v20
         #run: |
