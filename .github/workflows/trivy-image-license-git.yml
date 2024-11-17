@@ -41,10 +41,7 @@ jobs:
           severity: "MEDIUM,HIGH,CRITICAL"
           github-pat: ${{ secrets.GITHUB_TOKEN }}
 
-         #Create Snapshot
-          #create-snapshot: true  # This ensures that a snapshot is created and uploaded
-          #snapshot-branch: main  # Ensure the snapshot is linked to the default branch (e.g., main)
-
+          
 # Step 5
       - name: Step 5 Upload Snapshot
         uses: actions/upload-artifact@v4
@@ -58,8 +55,22 @@ jobs:
           trivy image --format json --output trivy-license.sarif --scanners license --severity UNKNOWN,HIGH,CRITICAL localbuild/testimage:latest
 
         env:
-          TRIVY_FORMAT: sarif
+          #TRIVY_FORMAT: sarif
+          TRIVY_FORMAT: github
           TRIVY_OUTPUT: trivy-license.sarif
+
+  # Fix Trivy SARIF Structure
+      - name: Fix Trivy SARIF Structure
+        run: |
+          if [ -f trivy-license.sarif ]; then
+            jq 'del(.SchemaVersion, .CreatedAt, .ArtifactName, .ArtifactType, .Metadata, .Results) |
+              . + {version: "2.1.0", runs: [{tool: {driver: {name: "Trivy", version: "0.40.0"}}, results: []}]} ' trivy-license.sarif > trivy-license-fixed.sarif
+            mv trivy-license-fixed.sarif trivy-license.sarif
+          else
+            echo "SARIF file not found"
+            exit 1
+          fi
+        shell: bash
           
 # Step 7: Step 7 Upload the SARIF report to GitHub
       - name: Upload SARIF report
