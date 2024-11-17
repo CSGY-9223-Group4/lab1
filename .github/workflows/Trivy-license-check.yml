@@ -11,8 +11,8 @@ permissions:
 jobs:
   Anchore-Build-Scan:
     permissions: write-all
-
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout the code
         uses: actions/checkout@v4
@@ -46,28 +46,25 @@ jobs:
           name: sbom
           path: artifacts/image.spdx.json
 
-      # New Step: Run Trivy License Check using SBOM artifact
-      - name: Run Trivy License Check using SBOM
-        uses: aquasecurity/trivy-action@0.28.0  # Corrected version syntax (no 'v')
-        #with:
-        #  artifact-type: "spdx-json"  # SBOM in SPDX format
-        #  input: "artifacts/image.spdx.json"  # Path to the SBOM file
-        #  format: "json"  # Output format for the license report
-        #  vuln-type: 'os,library'
-        #  scan-type: "license"  # Perform a license check
-        #  output: "trivy-license-report.json"  # Specify output file for the report
-        #  severity: "HIGH,CRITICAL"  # Severity filter for licenses
-        #  list-all-pkgs: false  # Optional: Do not list all packages, only those with issues
-        #  exit-code: '1'
+      # New Step: Download the SBOM Artifact
+      - name: Download SBOM artifact
+        uses: actions/download-artifact@v2
         with:
-          image-ref: "localbuild/testimage:latest"  # Correct input for specifying the image
-          format: "json"  # Output format
-          scan-type: "sbom"  # Correct scan type for scanning SBOM
-          input: "artifacts/image.spdx.json"  # Specify input SBOM file
+          name: sbom
+          path: artifacts
+
+      # New Step: Run Trivy License Check using SBOM
+      - name: Run Trivy License Check using SBOM
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          # Correctly use the SBOM file as input
+          input: "artifacts/image.spdx.json"  # Path to the SBOM file
+          format: "json"  # Output format for the license report
+          scan-type: "license"  # Perform a license check
           output: "trivy-license-report.json"  # Specify output file for the report
           severity: "HIGH,CRITICAL"  # Severity filter for licenses
           list-all-pkgs: false  # Optional: Do not list all packages, only those with issues
-        
+          exit-code: '1'  # Fail the build if any issues are found
 
       - name: Display Trivy License Report
         run: |
@@ -86,10 +83,11 @@ jobs:
         with:
           name: trivy-license-report
           path: trivy-license-report.json
-      
+
+      # Run Trivy Vulnerability Scan (fs mode for local file system scan)
       - name: Run Trivy vulnerability scanner in fs mode
         uses: aquasecurity/trivy-action@0.20.0
         with:
-          scan-type: 'fs'
-          scan-ref: '.'
-          trivy-config: trivy.yaml
+          scan-type: 'fs'  # File system mode for scanning local files
+          scan-ref: '.'  # Scanning the current directory
+          trivy-config: trivy.yaml  # Optional, if you have a config file
