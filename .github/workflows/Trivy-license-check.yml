@@ -52,7 +52,7 @@ jobs:
         uses: aquasecurity/trivy-action@0.20.0  # stable version
         
         with:
-          image-ref: "localbuild/testimage:latest"  # Correct input for specifying the image
+          sbom-file: "artifacts/image.spdx.json"  # Use the SBOM generated in previous step
           format: "json"  # Output format
           scan-type: "license"  # Perform a license check
           output: "trivy-license-report.json"  # Specify output file for the report
