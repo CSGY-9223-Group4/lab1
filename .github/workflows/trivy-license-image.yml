@@ -1,4 +1,4 @@
-name: License Compliance Check
+name: Triv License Image
 
 on:
   push:
@@ -29,16 +29,24 @@ jobs:
       - name: Install Trivy
         run: |
           curl -sfL https://github.com/aquasecurity/trivy/releases/download/v0.20.0/trivy_0.20.0_Linux-64bit.tar.gz | tar xz -C /usr/local/bin
-
     
   # Step 4
-      - name: Run Trivy License check using v50
-        
-        uses: aquasecurity/trivy-action@0.50.0
+      - name: Run Trivy in GitHub SBOM mode and submit results to Dependency Graph
+        uses: aquasecurity/trivy-action@0.28.0
         with:
-          image: localbuild/testimage:latest
-          format: json
-          scanners: license
-          
-          output: trivy-license-report.json
+          scan-type: 'fs'
+          format: 'github'
+          output: 'dependency-results.sbom.json'
+          image-ref: '.'
+          github-pat: ${{ secrets.GITHUB_TOKEN }}
+
+         #Create Snapshot
+          #create-snapshot: true  # This ensures that a snapshot is created and uploaded
+          #snapshot-branch: main  # Ensure the snapshot is linked to the default branch (e.g., main)
+
+      - name: Upload Snapshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-snapshot
+          path: '${{ github.workspace }}/dependency-results.sbom.json'
        
