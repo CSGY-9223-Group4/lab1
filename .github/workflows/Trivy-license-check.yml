@@ -48,7 +48,9 @@ jobs:
 
       # New Step: Run Trivy License Check
       - name: Run Trivy License Check
-        uses: aquasecurity/trivy-action@v0.20.0  # Make sure you're using the version you're working with
+        #uses: aquasecurity/trivy-action@v0.20.0  
+        uses: aquasecurity/trivy-action@0.20.0  # stable version
+        
         with:
           image-ref: "localbuild/testimage:latest"  # Correct input for specifying the image
           format: "json"  # Output format
