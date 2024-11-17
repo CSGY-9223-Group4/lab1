@@ -72,7 +72,7 @@ jobs:
           #list-all-pkgs: false
         run: |
           # Ensure the SBOM file exists at the path and then run Trivy scan on it
-          trivy scanners license sbom $SBOM_PATH --format json --severity HIGH,CRITICAL --output trivy-license-report.json
+          trivy sbom $SBOM_PATH --format json --severity HIGH,CRITICAL --output trivy-license-report.json
 
 
       # Step 8: Display Trivy License Report
