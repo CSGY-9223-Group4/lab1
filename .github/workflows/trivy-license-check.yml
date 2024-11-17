@@ -27,34 +27,35 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: List files in sbom directory (before download)
-        run: |
-          echo "Listing files in sbom directory (before download):"
-          ls -al sbom/ || echo "No sbom directory found. Will attempt artifact download."
-
-      - name: List available artifacts
+      - name: List available artifacts for debugging
         run: |
           echo "Listing available artifacts for this run..."
           curl -s \
             -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
             "https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts" | jq .
 
-
       - name: Download SBOM artifact from previous workflow
         uses: actions/download-artifact@v4
         with:
-          name: sbom  # Matching the artifact name used in the SBOM creation workflow
-          path: artifacts/image.spdx.json  # Path to the SBOM file
+          name: sbom  # Artifact name
+          path: sbom/  # Directory where the artifact will be downloaded
+          #path: artifacts/image.spdx.json  # Path to the SBOM file
 
-      - name: Set up Trivy
-        uses: aquasecurity/trivy-action@0.20.0
-        with:
-          scan-type: 'license'     # Specify license scanning
-          format: 'table'          # Human-readable output format
-          sbom: 'sbom/image.spdx.json'  # Path to the SBOM file (adjusted to where it was saved)
+      - name: List files in sbom directory (after download)
+        run: |
+          echo "Listing files in the sbom directory (after download):"
+          ls -al sbom/
 
-      - name: Upload Trivy License Scan Results
-        uses: actions/upload-artifact@v3
-        with:
-          name: trivy-license-results
-          path: trivy-report.json  # Path to the output report
+     # - name: Set up Trivy
+     #   uses: aquasecurity/trivy-action@0.20.0
+     #   with:
+     #     scan-type: 'license'     # Specify license scanning
+     #     format: 'table'          # Human-readable output format
+     #     sbom: 'sbom/image.spdx.json'  # Path to the SBOM file (inside the sbom folder)
+
+     #- name: Upload Trivy License Scan Results
+     #   uses: actions/upload-artifact@v3
+     #   with:
+     #     name: trivy-license-results
+     #     path: trivy-report.json  # Path to the output report
+
