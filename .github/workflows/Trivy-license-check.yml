@@ -60,7 +60,7 @@ jobs:
           echo "Displaying Trivy License Check results..."
           cat trivy-license-report.json
 
-      - name: Optional: Fail the build if GPL-3.0 license is found
+      - name: Fail the build if GPL-3.0 license is found
         run: |
           if grep -q 'GPL-3.0' trivy-license-report.json; then
             echo "GPL-3.0 license found in dependencies, which may be incompatible!"
