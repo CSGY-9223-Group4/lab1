@@ -13,6 +13,10 @@ permissions:
 jobs:
   lint:
     runs-on: ubuntu-latest
+    env:
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      DB_ROOT_PASSWORD: ${{ secrets.DB_ROOT_PASSWORD }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -215,3 +219,22 @@ jobs:
           if ! grep -q 'sbom:' **/*.yml; then
             echo "Warning: SBOM generation is not defined."
           fi
+
+      - name: Check for application Github Secrets - JWT SECRET
+        if: ${{ env.JWT_SECRET == '' }}
+        run: |
+          echo "Error: JWT_SECRET secret not set"
+          exit 1
+
+      - name: Check for application Github Secrets - DB PASSWORD
+        if: ${{ env.DB_PASSWORD == '' }}
+        run: |
+          echo "Error: DB_PASSWORD secret not set"
+          exit 1
+
+      - name: Check for application Github Secrets - DB ROOT PASSWORD
+        if: ${{ env.DB_ROOT_PASSWORD == '' }}
+        run: |
+          echo "Error: DB_ROOT_PASSWORD secret not set"
+          exit 1
+
