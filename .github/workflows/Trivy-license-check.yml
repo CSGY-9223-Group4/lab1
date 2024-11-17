@@ -90,24 +90,31 @@ jobs:
         path: attestation_predicate.json  # Specify the path to the attestation file
 
     # New Step: License Check for Dependencies using Trivy
-    - name: Install Trivy
-      run: |
-        echo "Installing Trivy..."
-        curl -sSL https://github.com/aquasecurity/trivy/releases/download/v0.39.0/trivy_0.39.0_Linux-64bit.tar.gz | tar xz -C /usr/local/bin --strip-components=1
+- name: Install Trivy
+  run: |
+    echo "Installing Trivy..."
+    # Install Trivy by downloading the latest version
+    curl -sSL https://github.com/aquasecurity/trivy/releases/download/v0.39.0/trivy_0.39.0_Linux-64bit.tar.gz | tar xz -C /usr/local/bin --strip-components=1
 
-    - name: Run Trivy License Check
-      id: license_check
-      run: |
-        echo "Running dependency license check with Trivy..."
-        trivy image --format json --output trivy-license-report.json --vuln-type library --security-checks license localbuild/testimage:latest
+    # Add /usr/local/bin to PATH to ensure it can be found
+    export PATH=$PATH:/usr/local/bin
 
-        # Display the results of the Trivy license check
-        cat trivy-license-report.json
+    # Verify Trivy installation
+    trivy --version
 
-        # Optional: Fail the build if certain licenses are found (e.g., GPL-3.0)
-        if grep -q 'GPL-3.0' trivy-license-report.json; then
-          echo "GPL-3.0 license found in dependencies, which may be incompatible!"
-          exit 1
-        fi
+- name: Run Trivy License Check
+  id: license_check
+  run: |
+    echo "Running dependency license check with Trivy..."
+    trivy image --format json --output trivy-license-report.json --vuln-type library --security-checks license localbuild/testimage:latest
+    
+    # Display the results of the Trivy license check
+    cat trivy-license-report.json
+    
+    # Optional: Fail the build if certain licenses are found (e.g., GPL-3.0)
+    if grep -q 'GPL-3.0' trivy-license-report.json; then
+      echo "GPL-3.0 license found in dependencies, which may be incompatible!"
+      exit 1
+    fi
 
-        echo "License check passed successfully!"
+    echo "License check passed successfully!"
