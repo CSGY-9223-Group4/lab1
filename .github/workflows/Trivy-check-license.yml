@@ -32,7 +32,7 @@ jobs:
           artifact-name: image.cyclonedx.json
           dependency-snapshot: true
           # Specify CycloneDX output format explicitly
-          output-format: "cyclonedx-json"
+          format: "cyclonedx-json"
 
 # Step 4: Display the generated CycloneDX SBOM content
       - name: Display CycloneDX SBOM content
