@@ -54,17 +54,21 @@ jobs:
           
 # Step 6 Step 6 Run Trivy License Scan
       - name: Step 6 Run Trivy License Scan
+        id: license
         run: |
-          trivy image --format json --output trivy-license-report.json --scanners license --severity UNKNOWN,HIGH,CRITICAL localbuild/testimage:latest
+          trivy image --format sarif --output trivy-license-report.sarif --scanners license --severity UNKNOWN,HIGH,CRITICAL localbuild/testimage:latest
 
         env:
-          TRIVY_FORMAT: sarif
+          TRIVY_FORMAT: github
           TRIVY_OUTPUT: trivy-license.sarif
           
 # Step 7: Step 7 Upload the SARIF report to GitHub
       - name: Upload SARIF report
         uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif_file: trivy-license.sarif
+          sarif_file: ${{ steps.license.outputs.sarif }}
+          
         env:
+          TRIVY_FORMAT: github
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TRIVY_OUTPUT: trivy-license.sarif
