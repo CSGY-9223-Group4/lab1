@@ -31,7 +31,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: sbom  # Matching the artifact name used in the SBOM creation workflow
-          path: sbom/             # Path where the SBOM file will be saved
+          path: artifacts/image.spdx.json  # Path to the SBOM file
 
       - name: Set up Trivy
         uses: aquasecurity/trivy-action@0.20.0
