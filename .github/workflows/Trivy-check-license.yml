@@ -59,15 +59,16 @@ jobs:
         uses: aquasecurity/trivy-action@0.20.0
         with:
           #input: image.cyclonedx.json
-          format: json
-          scan-type: "sbom"
+          #format: json
+          #scan-type: "sbom"
           scanners: license
           
           output: trivy-license-report.json
           severity: HIGH,CRITICAL
           list-all-pkgs: false
-        env:
-          ANCHORE_SBOM_ACTION_PRIOR_ARTIFACT: image.cyclonedx.json
+        run: |
+          # Ensure the SBOM file exists at the path and then run Trivy scan on it
+          trivy scanners license sbom $SBOM_PATH --format json --severity HIGH,CRITICAL --output trivy-license-report.json
 
 
       # Step 8: Display Trivy License Report
