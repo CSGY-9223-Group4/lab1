@@ -62,7 +62,7 @@ jobs:
   
   # Step 6    
       - name: Run Trivy License check using v20
-        run: |
+        #run: |
           # Ensure the SBOM file exists at the path and then run Trivy scan on it
           #SBOM_PATH=$(find /tmp -name "*.cyclonedx.json" | head -n 1)  # Dynamically find the SBOM file
           #echo "Found SBOM file at: $SBOM_PATH"
@@ -77,17 +77,17 @@ jobs:
           
           # Run Trivy scan on the SBOM file
           #trivy sbom $FOUND_SBOM_PATH --format json --severity HIGH,CRITICAL --output trivy-license-report.json    
-          trivy scanners license --format json --severity HIGH,CRITICAL --output trivy-license-report.json    
+          #trivy scanners license --format json --severity HIGH,CRITICAL --output trivy-license-report.json    
         
-        #uses: aquasecurity/trivy-action@0.20.0
-        #with:
-          #input: image.cyclonedx.json
-          #format: json
-          #scan-type: "sbom"
-          #scanners: license
+        uses: aquasecurity/trivy-action@0.20.0
+        with:
+          input: image.cyclonedx.json
+          format: json
+          scan-type: "sbom $SBOM_PATH"
+          scanners: license
           
-          #output: trivy-license-report.json
-          #severity: HIGH,CRITICAL
+          output: trivy-license-report.json
+          severity: HIGH,CRITICAL
           #list-all-pkgs: false
     
 
