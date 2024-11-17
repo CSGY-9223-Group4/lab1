@@ -46,27 +46,28 @@ jobs:
           name: sbom
           path: artifacts/image.spdx.json
 
-      # New Step: Run Trivy License Check using SBOM artifact
-      - name: Run Trivy License Check using SBOM
-        uses: aquasecurity/trivy-action@0.28.0  # Corrected version syntax (no 'v')
+       # New Step: Run Trivy Full License Scan using SBOM
+      - name: Run Trivy Full License Scan using SBOM
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          # Correctly use the SBOM file as input
+          input: "artifacts/image.spdx.json"  # Path to the SBOM file
+          format: "json"  # Output format for the license report
+          scan-type: "license"  # Perform a license scan
+          full-scan: true  # Enable full license scan (including transitive dependencies)
+          output: "trivy-full-license-report.json"  # Specify output file for the report
+          severity: "HIGH,CRITICAL"  # Severity filter for licenses
+          list-all-pkgs: false  # Optional: Do not list all packages, only those with issues
+          #exit-code: '1'  # Fail the build if any issues are found
+        
         #with:
-        #  artifact-type: "spdx-json"  # SBOM in SPDX format
-        #  input: "artifacts/image.spdx.json"  # Path to the SBOM file
-        #  format: "json"  # Output format for the license report
-        #  vuln-type: 'os,library'
-        #  scan-type: "license"  # Perform a license check
+        #  image-ref: "localbuild/testimage:latest"  # Correct input for specifying the image
+        #  format: "json"  # Output format
+        #  scan-type: "sbom"  # Correct scan type for scanning SBOM
+        #  input: "artifacts/image.spdx.json"  # Specify input SBOM file
         #  output: "trivy-license-report.json"  # Specify output file for the report
         #  severity: "HIGH,CRITICAL"  # Severity filter for licenses
         #  list-all-pkgs: false  # Optional: Do not list all packages, only those with issues
-        #  exit-code: '1'
-        with:
-          image-ref: "localbuild/testimage:latest"  # Correct input for specifying the image
-          format: "json"  # Output format
-          scan-type: "sbom"  # Correct scan type for scanning SBOM
-          input: "artifacts/image.spdx.json"  # Specify input SBOM file
-          output: "trivy-license-report.json"  # Specify output file for the report
-          severity: "HIGH,CRITICAL"  # Severity filter for licenses
-          list-all-pkgs: false  # Optional: Do not list all packages, only those with issues
         
 
       - name: Display Trivy License Report
