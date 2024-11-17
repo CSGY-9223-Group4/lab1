@@ -42,12 +42,12 @@ jobs:
           github-pat: ${{ secrets.GITHUB_TOKEN }}
 
          #Create Snapshot
-          create-snapshot: true  # This ensures that a snapshot is created and uploaded
-          snapshot-branch: main  # Ensure the snapshot is linked to the default branch (e.g., main)
+          #create-snapshot: true  # This ensures that a snapshot is created and uploaded
+          #snapshot-branch: main  # Ensure the snapshot is linked to the default branch (e.g., main)
 
       - name: Upload Snapshot
         uses: actions/upload-artifact@v4
         with:
           name: dependency-snapshot
-          path: ".github/workflows/outputs/dependency-snapshot.json"  # Path to the snapshot file
+          path: '${{ github.workspace }}/dependency-results.sbom.json'
        
