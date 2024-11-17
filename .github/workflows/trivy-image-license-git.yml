@@ -1,0 +1,70 @@
+name: Trivy License Image GitHub
+
+on:
+  push:
+    branches:
+      - '**'
+
+permissions:
+  id-token: write
+  contents: write
+
+jobs:
+  sbom-and-license-check:
+    runs-on: ubuntu-latest
+
+    steps:
+# Step 1: Checkout the code
+      - name: Step 1 Checkout the code
+        uses: actions/checkout@v4
+
+
+# Step 2: Build the Docker image
+      - name: Step 2 Build the Docker image
+        run: docker build . --file Dockerfile --tag localbuild/testimage:latest
+
+
+    
+  # Step 3
+      - name: Step 3 Install Trivy
+        run: |
+          curl -sfL https://github.com/aquasecurity/trivy/releases/download/v0.20.0/trivy_0.20.0_Linux-64bit.tar.gz | tar xz -C /usr/local/bin
+    
+  # Step 4
+      - name: Step 4 Run Trivy in GitHub SBOM mode and submit results to Dependency Graph
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: 'fs'
+          format: 'github'
+          output: 'dependency-results.sbom.json'
+          image-ref: '.'
+          severity: "MEDIUM,HIGH,CRITICAL"
+          github-pat: ${{ secrets.GITHUB_TOKEN }}
+
+         #Create Snapshot
+          #create-snapshot: true  # This ensures that a snapshot is created and uploaded
+          #snapshot-branch: main  # Ensure the snapshot is linked to the default branch (e.g., main)
+
+# Step 5
+      - name: Step 5 Upload Snapshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-snapshot
+          path: '${{ github.workspace }}/dependency-results.sbom.json'
+          
+# Step 6 Step 6 Run Trivy License Scan
+      - name: Step 6 Run Trivy License Scan
+        run: |
+          trivy image --format json --output trivy-license-report.json --scanners license --severity UNKNOWN,HIGH,CRITICAL localbuild/testimage:latest
+
+        env:
+          TRIVY_FORMAT: sarif
+          TRIVY_OUTPUT: trivy-license.sarif
+          
+# Step 7: Step 7 Upload the SARIF report to GitHub
+      - name: Upload SARIF report
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-license.sarif
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
