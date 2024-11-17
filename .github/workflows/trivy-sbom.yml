@@ -1,0 +1,107 @@
+#Trivy CycloneDX SBOM Scan and Cosign Signing
+name: trivy-sbom
+
+on:
+  push:
+    branches: '**'
+
+permissions:
+  id-token: write
+  contents: write
+
+jobs:
+  trivy-sbom-scan-and-sign:
+    permissions: write-all
+
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout the code
+      uses: actions/checkout@v4
+
+    - name: Build the Docker image
+      run: docker build . --file Dockerfile --tag localbuild/testimage:latest
+
+    - name: Install Trivy
+      run: |
+        curl -sSL https://github.com/aquasecurity/trivy/releases/download/v0.39.0/trivy_0.39.0_Linux-64bit.deb -o trivy.deb
+        sudo dpkg -i trivy.deb
+
+    - name: Cache Trivy DB
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/trivy
+        key: trivy-db-${{ runner.os }}-v0.39.0
+        restore-keys: trivy-db-${{ runner.os }}-
+
+    - name: Generate CycloneDX SBOM with Trivy
+      run: trivy image --format cyclonedx --output sbom.json localbuild/testimage:latest
+
+    - name: Create artifacts directory
+      run: mkdir -p artifacts
+
+    - name: Move SBOM artifact
+      run: mv sbom.json artifacts/sbom.json
+
+    - name: Upload SBOM artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: sbom
+        path: artifacts/sbom.json
+
+    - name: Set up Cosign
+      run: |
+        curl -sSL https://github.com/sigstore/cosign/releases/download/v2.0.0/cosign-linux-amd64 -o cosign
+        chmod +x cosign
+        sudo mv cosign /usr/local/bin
+
+    - name: Generate a new Cosign key pair (if not already generated)
+      run: |
+        cosign generate-key-pair ./cosign.key
+        echo "COSIGN_PRIVATE_KEY=$(cat ./cosign.key)" >> $GITHUB_ENV
+
+    - name: Sign the SBOM with Cosign
+      run: |
+        cosign sign --key ./cosign.key artifacts/sbom.json
+
+    - name: Upload Signed SBOM
+      uses: actions/upload-artifact@v4
+      with:
+        name: signed-sbom
+        path: artifacts/sbom.json.sig
+
+    - name: Create Attestation Predicate
+      id: create_predicate
+      run: |
+        echo '{
+          "predicateType": "https://in-toto.io/attestation/release/v0.1",
+          "subject": [{"name": "artifacts/sbom.json"}],
+          "claim": {
+            "summary": "CycloneDX SBOM generated and signed successfully.",
+            "commit": "'"$(date '+%Y-%m-%d %H:%M:%S')"'"
+          }
+        }' > attestation_predicate.json
+
+    - name: Validate JSON
+      run: jq . attestation_predicate.json || echo "Invalid JSON"
+
+    - name: Display Attestation Predicate
+      run: cat attestation_predicate.json
+
+    - name: Get registration token
+      id: getRegToken
+      run: |
+        curl -X POST -H "Accept: application/vnd.github.v3+json" -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" https://api.github.com/repos/myprofile/myrepo/actions/runners/registration-token
+
+    - name: Attest the Signed SBOM Artifact
+      uses: actions/attest@v1
+      with:
+        subject-path: artifacts/sbom.json
+        predicate-type: "https://in-toto.io/attestation/release/v0.1"
+        predicate-path: attestation_predicate.json
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Upload Attestation
+      uses: actions/upload-artifact@v4
+      with:
+        name: sbom-attestation
+        path: attestation_predicate.json
