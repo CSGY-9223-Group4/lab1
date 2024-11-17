@@ -32,9 +32,9 @@ jobs:
 
     
   # Step 4
-      - name: Run Trivy License check using v50
+      - name: Run Trivy License check using v20
         
-        uses: aquasecurity/trivy-action@0.50.0
+        uses: aquasecurity/trivy-action@0.20.0
         with:
           image: localbuild/testimage:latest
           format: json
