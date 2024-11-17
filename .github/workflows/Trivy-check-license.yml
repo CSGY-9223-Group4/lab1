@@ -22,20 +22,20 @@ jobs:
       - name: Build the Docker image
         run: docker build . --file Dockerfile --tag localbuild/testimage:latest
 
-      # Step 3: Generate SBOM using Anchore SBOM Action (SPDX format)
+      # Step 3: Generate SBOM using Anchore SBOM Action (CycloneDX format)
       - name: Scan the image and upload dependency results
         id: sbom_scan
         uses: anchore/sbom-action@latest
         with:
           image: "localbuild/testimage:latest"
-          artifact-name: image.cyclonedx.xml
+          artifact-name: image.cyclonedx.json
           dependency-snapshot: true
 
 # Step 4: Display the generated CycloneDX SBOM content
       - name: Display CycloneDX SBOM content
         run: |
-          echo "Displaying the contents of the generated CycloneDX SBOM file:"
-          SBOM_PATH=$(find /tmp -name "*.cyclonedx.xml" | head -n 1)  # Dynamically find the file
+          echo "Displaying the contents of the generated cyclonedx.json SBOM file:"
+          SBOM_PATH=$(find /tmp -name "*.cyclonedx.json" | head -n 1)  # Dynamically find the file
           cat $SBOM_PATH
           echo "SBOM Path: $SBOM_PATH"
           
@@ -44,7 +44,7 @@ jobs:
       - name: Run Trivy License Scan using CycloneDX SBOM
         uses: aquasecurity/trivy-action@0.28.0
         with:
-          input: "image.cyclonedx.xml"  # Path to the CycloneDX SBOM file
+          input: "image.cyclonedx.json"  # Path to the CycloneDX SBOM file
           format: "json"  # Output format for the license report
           scan-type: "sbom"  # Perform a license scan
           output: "trivy-license-report.json"  # Specify output file for the report
