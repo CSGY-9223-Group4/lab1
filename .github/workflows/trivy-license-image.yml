@@ -71,6 +71,10 @@ jobs:
         id: License
         run: |
           trivy image --format sarif --scanners license --license-full --severity UNKNOWN,HIGH,CRITICAL -o trivy-license.sarif localbuild/testimage:latest
+          
+        env:
+          TRIVY_FORMAT: sarif
+          TRIVY_OUTPUT: trivy-license.sarif
 
  #Step 9: Upload Trivy License Scan results as an artifact for later review
       - name: Step 9 Upload License result report
