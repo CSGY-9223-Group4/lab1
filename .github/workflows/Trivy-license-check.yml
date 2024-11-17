@@ -53,7 +53,8 @@ jobs:
           # Correctly use the SBOM file as input
           input: "artifacts/image.spdx.json"  # Path to the SBOM file
           format: "json"  # Output format for the license report
-          scan-type: "license"  # Perform a license scan
+          #scan-type: "license"  # Perform a license scan
+          scan-type: "sbom"  # Perform a license scan
           full-scan: true  # Enable full license scan (including transitive dependencies)
           output: "trivy-full-license-report.json"  # Specify output file for the report
           severity: "HIGH,CRITICAL"  # Severity filter for licenses
