@@ -13,11 +13,7 @@ permissions:
 
 jobs:
   Anchore-Build-Scan:
-    permissions:
-      contents: read   # Only read access to repository contents (source code)
-      id-token: write  # Write access to generate OIDC token for attestation
-      actions: write   # Write access for interacting with GitHub Actions artifacts
-      # No write permissions for unnecessary actions like repository management, pushing code, etc.
+    permissions: write-all # to be revised
 
     runs-on: ubuntu-latest
 
