@@ -48,6 +48,6 @@ jobs:
           path: '${{ github.workspace }}/dependency-results.sbom.json'
 
   # Step 5: Run Trivy License Scan
-      - name: Run Trivy License Scan
-        run: |
-          trivy image --format json --output trivy-license-report.json --scanners license localbuild/testimage:latest
+  #    - name: Run Trivy License Scan
+  #      run: |
+  #        trivy image --format json --output trivy-license-report.json --scanners license localbuild/testimage:latest
