@@ -1,0 +1,79 @@
+name: CycloneDX SBOM Creation and License Compliance Check
+
+on:
+  push:
+    branches:
+      - '**'
+
+permissions:
+  id-token: write
+  contents: write
+
+jobs:
+  sbom-and-license-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the code
+      - name: Checkout the code
+        uses: actions/checkout@v4
+
+      # Step 2: Build the Docker image
+      - name: Build the Docker image
+        run: docker build . --file Dockerfile --tag localbuild/testimage:latest
+
+      # Step 3: Generate CycloneDX SBOM using Syft
+      - name: Generate CycloneDX SBOM
+        run: |
+          syft localbuild/testimage:latest cyclonedx-json > sbom-cyclonedx.json
+
+      # Step 4: Display CycloneDX SBOM content for verification
+      - name: Display CycloneDX SBOM content
+        run: |
+          echo "Displaying CycloneDX SBOM content:"
+          cat sbom-cyclonedx.json
+
+      # Step 5: Validate CycloneDX SBOM syntax
+      - name: Validate CycloneDX SBOM syntax
+        run: |
+          # Install CycloneDX CLI tool for validation
+          curl -sSL https://github.com/CycloneDX/cyclonedx-cli/releases/download/v1.1.0/cyclonedx-cli-linux-x86_64-1.1.0.tar.gz | tar -xz -C /usr/local/bin
+          cyclonedx-cli validate sbom-cyclonedx.json
+
+      # Step 6: Run Trivy Full License Scan using SBOM
+      - name: Run Trivy License Scan using SBOM
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          input: "sbom-cyclonedx.json"  # Path to the CycloneDX SBOM file
+          format: "json"  # Output format for the license report
+          scan-type: "sbom"  # Perform a license scan
+          output: "trivy-license-report.json"  # Specify output file for the report
+          severity: "HIGH,CRITICAL"  # Severity filter for licenses
+          list-all-pkgs: false  # Optional: Do not list all packages, only those with issues
+
+      # Step 7: Display Trivy License Report
+      - name: Display Trivy License Report
+        run: |
+          echo "Displaying Trivy License Check results..."
+          cat trivy-license-report.json
+
+      # Step 8: Fail the build if non-compliant licenses (e.g., GPL-3.0) are found
+      - name: Fail the build if GPL-3.0 license is found
+        run: |
+          if grep -q 'GPL-3.0' trivy-license-report.json; then
+            echo "GPL-3.0 license found in dependencies, which may be incompatible!"
+            exit 1
+          fi
+
+      # Step 9: Upload SBOM and License Report as artifacts
+      - name: Upload SBOM as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-cyclonedx
+          path: sbom-cyclonedx.json
+
+      - name: Upload Trivy License Report as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-license-report
+          path: trivy-license-report.json
