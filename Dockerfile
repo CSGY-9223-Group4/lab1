@@ -1,4 +1,4 @@
-FROM python:3.12-alpine
+FROM python:3.12.8
 RUN adduser -D pastebin
 WORKDIR /app
 RUN chown -R pastebin:pastebin /app
