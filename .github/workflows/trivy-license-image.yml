@@ -38,6 +38,7 @@ jobs:
           format: 'github'
           output: 'dependency-results.sbom.json'
           image-ref: '.'
+          severity: "MEDIUM,HIGH,CRITICAL"
           github-pat: ${{ secrets.GITHUB_TOKEN }}
 
          #Create Snapshot
