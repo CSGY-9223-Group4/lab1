@@ -1,4 +1,4 @@
-name: License Compliance Check
+name: Triv License Image
 
 on:
   push:
@@ -46,7 +46,7 @@ jobs:
           snapshot-branch: main  # Ensure the snapshot is linked to the default branch (e.g., main)
 
       - name: Upload Snapshot
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: dependency-snapshot
           path: ".github/workflows/outputs/dependency-snapshot.json"  # Path to the snapshot file
