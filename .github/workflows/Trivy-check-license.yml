@@ -1,4 +1,4 @@
-name: Anchore SBOM Creation and License Compliance Check
+name: License Compliance Check
 
 on:
   push:
@@ -31,11 +31,13 @@ jobs:
           artifact-name: image.cyclonedx.xml
           dependency-snapshot: true
 
-      # Step 4: Display the generated SBOM content (cyclonedx format)
-      - name: Display SBOM content
+# Step 4: Display the generated CycloneDX SBOM content
+      - name: Display CycloneDX SBOM content
         run: |
-          echo "Displaying the contents of the generated SBOM file:"
-          cat image.cyclonedx.xml
+          echo "Displaying the contents of the generated CycloneDX SBOM file:"
+          SBOM_PATH=$(find /tmp -name "*.cyclonedx.xml" | head -n 1)  # Dynamically find the file
+          cat $SBOM_PATH
+          echo "SBOM Path: $SBOM_PATH"
           
 
       # Step 7: Run Trivy Full License Scan using the CycloneDX SBOM
