@@ -69,7 +69,7 @@ jobs:
         with:
           #input: image.cyclonedx.json
           format: json
-          scan-type: "sbom ${GITHUB_WORKSPACE}/image.cyclonedx.json"
+          scan-type: "sbom /home/runner/work/lab1/lab1/image.cyclonedx.json"
           scanners: license
           
           output: trivy-license-report.json
