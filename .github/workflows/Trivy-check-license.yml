@@ -81,9 +81,9 @@ jobs:
         
         uses: aquasecurity/trivy-action@0.20.0
         with:
-          input: image.cyclonedx.json
+          #input: image.cyclonedx.json
           format: json
-          scan-type: "sbom $SBOM_PATH"
+          scan-type: "sbom $SBOM_PATH scanners license"
           scanners: license
           
           output: trivy-license-report.json
