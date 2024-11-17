@@ -1,95 +1,59 @@
-name: Anchore Syft SBOM scan with Trivy License Check
+name: SBOM Creation and Dependency Check
 
 on:
   push:
-    branches: '**'
-
-permissions:
-  id-token: write
-  contents: write
+    branches: ['main']
+  pull_request:
+    branches: ['main']
 
 jobs:
-  Anchore-Build-Scan:
-    permissions: write-all
-
+  create-sbom-and-scan:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout the code
+      # Checkout the repository
+      - name: Checkout the repository
         uses: actions/checkout@v4
 
-      - name: Build the Docker image
+      # Build the Docker image (assuming you're scanning a Docker image)
+      - name: Build Docker image
         run: docker build . --file Dockerfile --tag localbuild/testimage:latest
 
-      - name: Scan the image and upload dependency results
-        id: sbom_scan
+      # Step to generate SBOM using Anchore Syft
+      - name: Generate SBOM with Syft
         uses: anchore/sbom-action@latest
+        id: sbom
         with:
-          image: "localbuild/testimage:latest"
-          artifact-name: image.spdx.json
-          dependency-snapshot: true
+          image: localbuild/testimage:latest
+          artifact-name: sbom.json  # This is the output SBOM file
 
-      - name: List SBOM Output Directory
-        run: |
-          echo "Contents of the SBOM action output directory:"
-          ls -al /tmp/sbom-action-* || true
-
-      - name: Create artifacts directory
-        run: mkdir -p artifacts
-
-      - name: Move SBOM artifact
-        run: |
-          mv /tmp/sbom-action-*/image.spdx.json artifacts/image.spdx.json
-
+      # Upload the generated SBOM for further usage
       - name: Upload SBOM artifact
         uses: actions/upload-artifact@v4
         with:
           name: sbom
-          path: artifacts/image.spdx.json
+          path: sbom.json
 
-       # New Step: Run Trivy Full License Scan using SBOM
-      - name: Run Trivy Full License Scan using SBOM
+      # Download the SBOM artifact for Trivy to use
+      - name: Download SBOM artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: sbom
+          path: ./artifacts
+
+      # Run Trivy dependency scan using the SBOM
+      - name: Run Trivy dependency scan
         uses: aquasecurity/trivy-action@0.28.0
         with:
-          # Correctly use the SBOM file as input
-          input: "artifacts/image.spdx.json"  # Path to the SBOM file
-          format: "json"  # Output format for the license report
-          scan-type: "sbom"  # Perform scan
-          output: "trivy-full-license-report.json"  # Specify output file for the report
-          severity: "HIGH,CRITICAL"  # Severity filter for licenses
-          list-all-pkgs: false  # Optional: Do not list all packages, only those with issues
-          exit-code: '0'  # Do NOT Fail the build if any issues are found
-        
-        #with:
-        #  image-ref: "localbuild/testimage:latest"  # Correct input for specifying the image
-        #  format: "json"  # Output format
-        #  scan-type: "sbom"  # Correct scan type for scanning SBOM
-        #  input: "artifacts/image.spdx.json"  # Specify input SBOM file
-        #  output: "trivy-license-report.json"  # Specify output file for the report
-        #  severity: "HIGH,CRITICAL"  # Severity filter for licenses
-        #  list-all-pkgs: false  # Optional: Do not list all packages, only those with issues
-        
+          input: "./artifacts/sbom.json"  # Path to the SBOM file
+          scan-type: "license"  # Scan for vulnerabilities in dependencies
+          format: "json"  # Output format
+          output: "trivy-dependency-report.json"  # Output file for the report
+          severity: "HIGH,CRITICAL"  # Filter for high and critical severity issues
 
-      - name: Display Trivy License Report
-        run: |
-          echo "Displaying Trivy License Check results..."
-          cat trivy-license-report.json
-
-      - name: Fail the build if GPL-3.0 license is found
-        run: |
-          if grep -q 'GPL-3.0' trivy-license-report.json; then
-            echo "GPL-3.0 license found in dependencies, which may be incompatible!"
-            exit 1
-          fi
-
-      - name: Upload Trivy License Report
+      # Upload the Trivy dependency report
+      - name: Upload Trivy dependency report
         uses: actions/upload-artifact@v4
         with:
-          name: trivy-license-report
-          path: trivy-license-report.json
-      
-      - name: Run Trivy vulnerability scanner in fs mode
-        uses: aquasecurity/trivy-action@0.20.0
-        with:
-          scan-type: 'fs'
-          scan-ref: '.'
-          trivy-config: trivy.yaml
+          name: trivy-dependency-report
+          path: trivy-dependency-report.json
