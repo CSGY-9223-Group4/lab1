@@ -58,13 +58,13 @@ jobs:
         with:
           #input: image.cyclonedx.json
           format: json
-          scan-type: license
+          scan-type: sbom
           output: trivy-license-report.json
           severity: HIGH,CRITICAL
           list-all-pkgs: false
           scan-ref: .
       #    ignore-unfixed: false
-          vuln-type: os,library,fs
+      
 
       # Step 7: Run Trivy Full License Scan using the CycloneDX SBOM
       - name: Run Trivy License Scan using CycloneDX SBOM
