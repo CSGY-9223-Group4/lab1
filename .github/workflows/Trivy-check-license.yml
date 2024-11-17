@@ -42,7 +42,8 @@ jobs:
 
       # Step 7: Run Trivy Full License Scan using the CycloneDX SBOM
       - name: Run Trivy License Scan using CycloneDX SBOM
-        uses: aquasecurity/trivy-action@0.28.0
+        #uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@0.23.0
         with:
           input: "image.cyclonedx.json"  # Path to the CycloneDX SBOM file
           format: "json"  # Output format for the license report
