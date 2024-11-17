@@ -19,6 +19,7 @@ permissions:
   deployments: none         # No need for deployment permissions (set to 'none' if not needed)
   pull-requests: none       # No need for pull request permissions (set to 'none' if not needed)
 
+
 jobs:
   license-check:
     runs-on: ubuntu-latest
@@ -27,17 +28,21 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Download SBOM artifact from previous run
+        uses: actions/download-artifact@v3
+        with:
+          name: sbom-artifact  # Replace this with the actual artifact name that contains the SBOM
+          path: sbom/          # Destination folder where the SBOM file will be saved
+
       - name: Set up Trivy
         uses: aquasecurity/trivy-action@0.20.0  # stable version
         with:
-          scan-type: 'license'  # Specify that we are scanning for licenses
-          format: 'table'       # Output format (you can also use 'json' or 'github')
-          license-full: true
-          #severity: 'UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL'
-          #vuln-type: os,library # Scan both OS and library vulnerabilities
+          scan-type: 'license'     # Specify license scanning
+          format: 'table'          # Human-readable output format
+          sbom: 'sbom/sbom.json'   # Path to your SBOM file (adjust if necessary)
 
       - name: Upload Trivy License Scan Results
         uses: actions/upload-artifact@v3
         with:
           name: trivy-license-results
-          path: trivy-report.json  # If you generate a JSON report
+          path: trivy-report.json  # Path to the output report
