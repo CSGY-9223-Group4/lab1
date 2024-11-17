@@ -63,3 +63,16 @@ jobs:
         with:
           name: trivy-license-report
           path: '${{ github.workspace }}/trivy-license-report.json'
+
+# Step 8 Run Trivy License Scan (SARIF to GitHub)
+      - name: Step 8 Run Trivy License Scan
+        id: License
+        run: |
+          trivy image --format sarif --scanners license --license-full --severity UNKNOWN,HIGH,CRITICAL localbuild/testimage:latest
+
+ #Step 9: Upload Trivy License Scan results as an artifact for later review
+      - name: Step 9 Upload License result report
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: ${{ steps.License.outputs.sarif }}
+          path: '${{ github.workspace }}/trivy-license-report.json'
