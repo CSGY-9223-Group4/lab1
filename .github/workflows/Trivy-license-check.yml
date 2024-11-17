@@ -53,10 +53,12 @@ jobs:
           artifact-type: "spdx-json"  # SBOM in SPDX format
           input: "artifacts/image.spdx.json"  # Path to the SBOM file
           format: "json"  # Output format for the license report
+          vuln-type: 'os,library'
           scan-type: "license"  # Perform a license check
           output: "trivy-license-report.json"  # Specify output file for the report
-          severity: "UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL"  # Severity filter for licenses
+          severity: "HIGH,CRITICAL"  # Severity filter for licenses
           list-all-pkgs: false  # Optional: Do not list all packages, only those with issues
+          exit-code: '1'
 
       - name: Display Trivy License Report
         run: |
@@ -75,3 +77,10 @@ jobs:
         with:
           name: trivy-license-report
           path: trivy-license-report.json
+      
+      - name: Run Trivy vulnerability scanner in fs mode
+        uses: aquasecurity/trivy-action@0.20.0
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          trivy-config: trivy.yaml
