@@ -1,7 +1,7 @@
 name: Trivy License Image GitHub
 
 on:
-  push:
+  pull:
     branches:
       - '**'
 
