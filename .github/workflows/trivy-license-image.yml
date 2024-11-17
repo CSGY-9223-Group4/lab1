@@ -15,23 +15,23 @@ jobs:
 
     steps:
 # Step 1: Checkout the code
-      - name: Checkout the code
+      - name: Step 1 Checkout the code
         uses: actions/checkout@v4
 
 
 # Step 2: Build the Docker image
-      - name: Build the Docker image
+      - name: Step 2 Build the Docker image
         run: docker build . --file Dockerfile --tag localbuild/testimage:latest
 
 
     
   # Step 3
-      - name: Install Trivy
+      - name: Step 3 Install Trivy
         run: |
           curl -sfL https://github.com/aquasecurity/trivy/releases/download/v0.20.0/trivy_0.20.0_Linux-64bit.tar.gz | tar xz -C /usr/local/bin
     
   # Step 4
-      - name: Run Trivy in GitHub SBOM mode and submit results to Dependency Graph
+      - name: Step 4 Run Trivy in GitHub SBOM mode and submit results to Dependency Graph
         uses: aquasecurity/trivy-action@0.28.0
         with:
           scan-type: 'fs'
@@ -44,9 +44,14 @@ jobs:
           #create-snapshot: true  # This ensures that a snapshot is created and uploaded
           #snapshot-branch: main  # Ensure the snapshot is linked to the default branch (e.g., main)
 
-      - name: Upload Snapshot
+# Step 5
+      - name: Step 5 Upload Snapshot
         uses: actions/upload-artifact@v4
         with:
           name: dependency-snapshot
           path: '${{ github.workspace }}/dependency-results.sbom.json'
-       
+          
+# Step 6 Run Trivy License Scan
+      - name: Step 6 Run Trivy License Scan
+        run: |
+          trivy image --format json --output trivy-license-report.json --scanners license localbuild/testimage:latest
