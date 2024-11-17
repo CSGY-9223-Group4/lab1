@@ -1,0 +1,44 @@
+name: License Compliance Check
+
+on:
+  push:
+    branches:
+      - '**'
+
+permissions:
+  id-token: write
+  contents: write
+
+jobs:
+  sbom-and-license-check:
+    runs-on: ubuntu-latest
+
+    steps:
+# Step 1: Checkout the code
+      - name: Checkout the code
+        uses: actions/checkout@v4
+
+
+# Step 2: Build the Docker image
+      - name: Build the Docker image
+        run: docker build . --file Dockerfile --tag localbuild/testimage:latest
+
+
+    
+  # Step 3
+      - name: Install Trivy
+        run: |
+          curl -sfL https://github.com/aquasecurity/trivy/releases/download/v0.20.0/trivy_0.20.0_Linux-64bit.tar.gz | tar xz -C /usr/local/bin
+
+    
+  # Step 4
+      - name: Run Trivy License check using v50
+        
+        uses: aquasecurity/trivy-action@0.50.0
+        with:
+          image: localbuild/testimage:latest
+          format: json
+          scanners: license
+          
+          output: trivy-license-report.json
+       
