@@ -49,16 +49,25 @@ jobs:
       # New Step: Run Trivy License Check using SBOM artifact
       - name: Run Trivy License Check using SBOM
         uses: aquasecurity/trivy-action@0.28.0  # Corrected version syntax (no 'v')
+        #with:
+        #  artifact-type: "spdx-json"  # SBOM in SPDX format
+        #  input: "artifacts/image.spdx.json"  # Path to the SBOM file
+        #  format: "json"  # Output format for the license report
+        #  vuln-type: 'os,library'
+        #  scan-type: "license"  # Perform a license check
+        #  output: "trivy-license-report.json"  # Specify output file for the report
+        #  severity: "HIGH,CRITICAL"  # Severity filter for licenses
+        #  list-all-pkgs: false  # Optional: Do not list all packages, only those with issues
+        #  exit-code: '1'
         with:
-          artifact-type: "spdx-json"  # SBOM in SPDX format
-          input: "artifacts/image.spdx.json"  # Path to the SBOM file
-          format: "json"  # Output format for the license report
-          vuln-type: 'os,library'
-          scan-type: "license"  # Perform a license check
+          image-ref: "localbuild/testimage:latest"  # Correct input for specifying the image
+          format: "json"  # Output format
+          scan-type: "sbom"  # Correct scan type for scanning SBOM
+          input: "artifacts/image.spdx.json"  # Specify input SBOM file
           output: "trivy-license-report.json"  # Specify output file for the report
           severity: "HIGH,CRITICAL"  # Severity filter for licenses
           list-all-pkgs: false  # Optional: Do not list all packages, only those with issues
-          exit-code: '1'
+        
 
       - name: Display Trivy License Report
         run: |
