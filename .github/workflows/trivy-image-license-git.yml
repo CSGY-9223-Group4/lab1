@@ -63,7 +63,8 @@ jobs:
           
 # Step 7: Step 7 Upload the SARIF report to GitHub
       - name: Upload SARIF report
-        uses: github/codeql-action/upload-sarif@v3
+        #uses: github/codeql-action/upload-sarif@v3
+        uses: github/trivy-action/upload-sarif@v3
         with:
           sarif_file: trivy-license.sarif
         env:
