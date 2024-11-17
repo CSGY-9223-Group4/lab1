@@ -40,18 +40,31 @@ jobs:
           cat $SBOM_PATH
           echo "SBOM Path: $SBOM_PATH"
           
-      - name: Scan the image for vulnerabilities and licenses
-        uses: aquasecurity/trivy-action@0.23.0
+      #- name: Scan the image for vulnerabilities and licenses
+      #  uses: aquasecurity/trivy-action@0.23.0
+      #  with:
+      #    #input: image.cyclonedx.json
+      #    format: json
+      #    scan-type: sbom
+      #    output: trivy-license-report.json
+      #    severity: HIGH,CRITICAL
+      #    list-all-pkgs: false
+      #    scan-ref: .
+      #    ignore-unfixed: false
+      #    vuln-type: os,library
+
+      - name: Run Trivy License check using v52
+        uses: aquasecurity/trivy-action@0.52.0
         with:
           #input: image.cyclonedx.json
           format: json
-          scan-type: sbom
+          scan-type: license
           output: trivy-license-report.json
           severity: HIGH,CRITICAL
           list-all-pkgs: false
-          scan-ref: .
-          ignore-unfixed: false
-          vuln-type: os,library
+      #    scan-ref: .
+      #    ignore-unfixed: false
+      #    vuln-type: os,library
 
       # Step 7: Run Trivy Full License Scan using the CycloneDX SBOM
       - name: Run Trivy License Scan using CycloneDX SBOM
