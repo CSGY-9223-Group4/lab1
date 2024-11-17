@@ -27,30 +27,21 @@ jobs:
           image: localbuild/testimage:latest
           artifact-name: sbom.json  # This is the output SBOM file
 
-      # Upload the generated SBOM for further usage
       - name: Upload SBOM artifact
         uses: actions/upload-artifact@v4
         with:
           name: sbom
-          path: sbom.json
-
-      # Download the SBOM artifact for Trivy to use
-      - name: Download SBOM artifact
-        uses: actions/download-artifact@v2
-        with:
-          name: sbom
-          path: ./artifacts
-
-      # Run Trivy dependency scan using the SBOM
-      - name: Run Trivy dependency scan
+          path: artifacts/image.spdx.json
+      
+      # Later steps that use the uploaded SBOM
+      - name: Run Trivy License Check using SBOM
         uses: aquasecurity/trivy-action@0.28.0
         with:
-          input: "./artifacts/sbom.json"  # Path to the SBOM file
-          scan-type: "license"  # Scan for vulnerabilities in dependencies
-          format: "json"  # Output format
-          output: "trivy-dependency-report.json"  # Output file for the report
-          severity: "HIGH,CRITICAL"  # Filter for high and critical severity issues
-
+          scan-type: sbom
+          input: "artifacts/image.spdx.json"  # Path to the SBOM artifact
+          output: "trivy-license-report.json"
+          
+          
       # Upload the Trivy dependency report
       - name: Upload Trivy dependency report
         uses: actions/upload-artifact@v4
