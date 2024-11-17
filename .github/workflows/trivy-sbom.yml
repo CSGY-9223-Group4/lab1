@@ -34,7 +34,7 @@ jobs:
         restore-keys: trivy-db-${{ runner.os }}-
 
     - name: Generate CycloneDX SBOM with Trivy
-      run: trivy sbom --format cyclonedx --output sbom.json localbuild/testimage:latest
+      run: trivy image --format cyclonedx --output sbom.json localbuild/testimage:latest
 
     - name: Create artifacts directory
       run: mkdir -p artifacts
