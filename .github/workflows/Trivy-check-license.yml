@@ -55,6 +55,13 @@ jobs:
       #    ignore-unfixed: false
       #    vuln-type: os,library
 
+# Step 4: Set the SBOM file path as a variable
+      - name: Set SBOM file path
+        run: |
+          SBOM_PATH="${GITHUB_WORKSPACE}/image.cyclonedx.json"
+          echo "SBOM file location: $SBOM_PATH"
+          echo "SBOM_PATH=$SBOM_PATH" >> $GITHUB_ENV
+    
   # Step 5
       - name: Install Trivy
         run: |
@@ -83,8 +90,8 @@ jobs:
         with:
           #input: image.cyclonedx.json
           format: json
-          scan-type: "sbom scanners license $SBOM_PATH"
-          #scanners: license
+          scan-type: "sbom $SBOM_PATH"
+          scanners: license
           
           output: trivy-license-report.json
           severity: HIGH,CRITICAL
