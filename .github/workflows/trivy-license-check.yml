@@ -28,7 +28,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up Trivy
-        uses: aquasecurity/trivy-action@latest
+        uses: aquasecurity/trivy-action@0.20.0  # stable version
         with:
           scan-type: 'license'  # Specify that we are scanning for licenses
           format: 'table'       # Output format (you can also use 'json' or 'github')
