@@ -53,8 +53,8 @@ jobs:
       #    ignore-unfixed: false
       #    vuln-type: os,library
 
-      - name: Run Trivy License check using v52
-        uses: aquasecurity/trivy-action@0.52.0
+      - name: Run Trivy License check using v24
+        uses: aquasecurity/trivy-action@0.24.0
         with:
           #input: image.cyclonedx.json
           format: json
