@@ -46,6 +46,12 @@ jobs:
           name: sbom
           path: artifacts/image.spdx.json
 
+      # New Step: Display the uploaded SBOM content
+      - name: Display SBOM Content
+        run: |
+          echo "Displaying the contents of the uploaded SBOM file:"
+          cat artifacts/image.spdx.json
+
        # New Step: Run Trivy Full License Scan using SBOM
       - name: Run Trivy Full License Scan using SBOM
         uses: aquasecurity/trivy-action@0.28.0
