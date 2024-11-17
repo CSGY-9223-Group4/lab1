@@ -55,7 +55,7 @@ jobs:
 # Step 6 Run Trivy License Scan
       - name: Step 6 Run Trivy License Scan
         run: |
-          trivy image --format json --output trivy-license-report.json --scanners license --severity UNKNOWN,HIGH,CRITICAL localbuild/testimage:latest
+          trivy image --format json --output trivy-license-report.json --scanners license --license-full --severity UNKNOWN,HIGH,CRITICAL localbuild/testimage:latest
 
  #Step 7: Upload Trivy License Scan results as an artifact for later review
       - name: Step 7 Upload Trivy License Scan Report
