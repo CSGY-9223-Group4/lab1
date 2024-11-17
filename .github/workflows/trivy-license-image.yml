@@ -74,7 +74,12 @@ jobs:
 
  #Step 9: Upload Trivy License Scan results as an artifact for later review
       - name: Step 9 Upload License result report
-        uses: github/codeql-action/upload-sarif@v3
+        #uses: github/codeql-action/upload-sarif@v3
+        #with:
+        #  sarif_file: ${{ steps.License.outputs.sarif }}
+        #  path: '${{ github.workspace }}/trivy-license-report.json'
+
+        uses: actions/upload-artifact@v4
         with:
-          sarif_file: ${{ steps.License.outputs.sarif }}
-          path: '${{ github.workspace }}/trivy-license-report.json'
+          name: trivy-license-report
+          path: '${{ github.workspace }}/trivy-license-report.sarif'
