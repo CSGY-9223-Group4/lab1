@@ -55,3 +55,10 @@ jobs:
       - name: Step 6 Run Trivy License Scan
         run: |
           trivy image --format json --output trivy-license-report.json --scanners license localbuild/testimage:latest
+
+ #Step 7: Upload Trivy License Scan results as an artifact for later review
+      - name: Step 7 Upload Trivy License Scan Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-license-report
+          path: '${{ github.workspace }}/trivy-license-report.json'
