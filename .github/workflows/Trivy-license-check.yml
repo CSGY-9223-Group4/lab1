@@ -56,6 +56,8 @@ jobs:
           format: "json"  # Output format
           scan-type: "license"  # Perform a license check
           output: "trivy-license-report.json"  # Specify output file for the report
+          severity: "UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL"  # Severity filter for licenses (if needed)
+          list-all-pkgs: false  # Optional: Do not list all packages, only those with issues
 
       - name: Display Trivy License Report
         run: |
