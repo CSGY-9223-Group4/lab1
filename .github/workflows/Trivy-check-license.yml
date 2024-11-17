@@ -60,7 +60,8 @@ jobs:
         with:
           #input: image.cyclonedx.json
           format: json
-          scan-type: sbom
+          #scan-type: sbom
+          scan-type: "license"
           output: trivy-license-report.json
           severity: HIGH,CRITICAL
           list-all-pkgs: false
