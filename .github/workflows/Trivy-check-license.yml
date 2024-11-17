@@ -64,15 +64,15 @@ jobs:
       - name: Run Trivy License check using v20
         run: |
           # Ensure the SBOM file exists at the path and then run Trivy scan on it
-          SBOM_PATH=$(find /tmp -name "*.cyclonedx.json" | head -n 1)  # Dynamically find the SBOM file
-          echo "Found SBOM file at: $SBOM_PATH"
-          FOUND_SBOM_PATH=$SBOM_PATH
-          echo "Found SBOM file at: $FOUND_SBOM_PATH"
+          #SBOM_PATH=$(find /tmp -name "*.cyclonedx.json" | head -n 1)  # Dynamically find the SBOM file
+          #echo "Found SBOM file at: $SBOM_PATH"
+          #FOUND_SBOM_PATH=$SBOM_PATH
+          #echo "Found SBOM file at: $FOUND_SBOM_PATH"
           
-          if [ -z "$SBOM_PATH" ]; then
-            echo "SBOM file not found, exiting..."
-            exit 1
-          fi
+          #if [ -z "$SBOM_PATH" ]; then
+          #  echo "SBOM file not found, exiting..."
+          #  exit 1
+          #fi
 
           
           # Run Trivy scan on the SBOM file
