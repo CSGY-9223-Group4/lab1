@@ -1,4 +1,4 @@
-name: License Compliance Check
+nname: Triv License Image
 
 on:
   push:
@@ -32,13 +32,22 @@ jobs:
 
     
   # Step 4
-      - name: Run Trivy License check using v50
-        
-        uses: aquasecurity/trivy-action@0.50.0
+      - name: Run Trivy in GitHub SBOM mode and submit results to Dependency Graph
+        uses: aquasecurity/trivy-action@0.28.0
         with:
-          image: localbuild/testimage:latest
-          format: json
-          scanners: license
-          
-          output: trivy-license-report.json
-       
+          scan-type: 'fs'
+          format: 'github'
+          output: 'dependency-results.sbom.json'
+          image-ref: '.'
+          github-pat: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload trivy report as a Github artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-sbom-report
+          path: '${{ github.workspace }}/dependency-results.sbom.json'
+
+  # Step 5: Run Trivy License Scan
+      - name: Run Trivy License Scan
+        run: |
+          trivy image --format json --output trivy-license-report.json --scanners license localbuild/testimage:latest
