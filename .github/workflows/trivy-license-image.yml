@@ -1,4 +1,4 @@
-name: License Compliance Check
+name: Trivy License Image
 
 on:
   push:
@@ -36,7 +36,7 @@ jobs:
         
         uses: aquasecurity/trivy-action@0.20.0
         with:
-          image: localbuild/testimage:latest
+          image: python:3.4-alpine
           format: json
           scanners: license
           
