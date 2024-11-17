@@ -1,0 +1,117 @@
+name: Anchore Syft SBOM scan with Trivy License Check
+
+on:
+  push:
+    branches: '**'
+
+permissions:
+  contents: read       # Only read access to repository contents (source code)
+  id-token: write      # Allows for the generation of GitHub OIDC tokens (used for attestation)
+  actions: read        # Read access to actions
+  issues: write        # Write access for posting issues (if required)
+  checks: write        # Write access for creating check runs (if required)
+
+jobs:
+  Anchore-Build-Scan:
+    permissions:
+      contents: read   # Only read access to repository contents (source code)
+      id-token: write  # Write access to generate OIDC token for attestation
+      actions: write   # Write access for interacting with GitHub Actions artifacts
+      # No write permissions for unnecessary actions like repository management, pushing code, etc.
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout the code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 1  # Shallow clone to reduce the amount of data pulled, improving speed and security.
+
+    - name: Build the Docker image
+      run: docker build . --file Dockerfile --tag localbuild/testimage:latest
+
+    - name: Scan the image and upload dependency results (SBOM)
+      id: sbom_scan
+      uses: anchore/sbom-action@latest
+      with:
+        image: "localbuild/testimage:latest"
+        artifact-name: image.spdx.json
+        dependency-snapshot: true
+
+    - name: List SBOM Output Directory
+      run: |
+        echo "Contents of the SBOM action output directory:"
+        ls -al /tmp/sbom-action-* || true
+
+    - name: Create artifacts directory
+      run: mkdir -p artifacts
+
+    - name: Move SBOM artifact
+      run: |
+        mv /tmp/sbom-action-*/image.spdx.json artifacts/image.spdx.json
+
+    - name: Upload SBOM artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: sbom
+        path: artifacts/image.spdx.json
+
+    - name: Create Attestation Predicate
+      id: create_predicate
+      run: |
+        echo '{
+          "predicateType": "https://in-toto.io/attestation/release/v0.1",
+          "subject": [{"name": "artifacts/image.spdx.json"}],
+          "claim": {
+            "summary": "SBOM generated successfully.",
+            "commit": "'"$(date '+%Y-%m-%d %H:%M:%S')"'"
+          }
+        }' > attestation_predicate.json
+
+    - name: Validate JSON
+      run: jq . attestation_predicate.json || echo "Invalid JSON"
+
+    - name: Display Attestation Predicate
+      run: cat attestation_predicate.json  # Print to verify JSON format
+
+    - name: Get registration token
+      id: getRegToken
+      run: |
+        curl -X POST -H "Accept: application/vnd.github.v3+json" -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" https://api.github.com/repos/myprofile/myrepo/actions/runners/registration-token
+
+    - name: Attest the SBOM artifact
+      uses: actions/attest@v1
+      with:
+        subject-path: artifacts/image.spdx.json
+        predicate-type: "https://in-toto.io/attestation/release/v0.1"
+        predicate-path: attestation_predicate.json
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Upload attestation
+      uses: actions/upload-artifact@v4
+      with:
+        name: sbom-attestation
+        path: attestation_predicate.json  # Specify the path to the attestation file
+
+    # New Step: License Check for Dependencies using Trivy
+    - name: Install Trivy
+      run: |
+        echo "Installing Trivy..."
+        curl -sSL https://github.com/aquasecurity/trivy/releases/download/v0.39.0/trivy_0.39.0_Linux-64bit.tar.gz | tar xz -C /usr/local/bin --strip-components=1
+
+    - name: Run Trivy License Check
+      id: license_check
+      run: |
+        echo "Running dependency license check with Trivy..."
+        trivy image --format json --output trivy-license-report.json --vuln-type library --security-checks license localbuild/testimage:latest
+
+        # Display the results of the Trivy license check
+        cat trivy-license-report.json
+
+        # Optional: Fail the build if certain licenses are found (e.g., GPL-3.0)
+        if grep -q 'GPL-3.0' trivy-license-report.json; then
+          echo "GPL-3.0 license found in dependencies, which may be incompatible!"
+          exit 1
+        fi
+
+        echo "License check passed successfully!"
