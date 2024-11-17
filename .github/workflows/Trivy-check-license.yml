@@ -43,7 +43,7 @@ jobs:
       - name: Scan the image for vulnerabilities and licenses
         uses: aquasecurity/trivy-action@0.23.0
         with:
-          input: image.cyclonedx.json
+          #input: image.cyclonedx.json
           format: json
           scan-type: sbom
           output: trivy-license-report.json
