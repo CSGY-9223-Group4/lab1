@@ -19,7 +19,6 @@ permissions:
   deployments: none         # No need for deployment permissions (set to 'none' if not needed)
   pull-requests: none       # No need for pull request permissions (set to 'none' if not needed)
 
-
 jobs:
   license-check:
     runs-on: ubuntu-latest
@@ -28,18 +27,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Download SBOM artifact from previous run
+      - name: Download SBOM artifact from previous workflow
         uses: actions/download-artifact@v3
         with:
-          name: sbom-artifact  # Replace this with the actual artifact name that contains the SBOM
-          path: sbom/          # Destination folder where the SBOM file will be saved
+          name: docker-sbom-spdx  # Matching the artifact name used in the SBOM creation workflow
+          path: sbom/             # Path where the SBOM file will be saved
 
       - name: Set up Trivy
-        uses: aquasecurity/trivy-action@0.20.0  # stable version
+        uses: aquasecurity/trivy-action@0.20.0
         with:
           scan-type: 'license'     # Specify license scanning
           format: 'table'          # Human-readable output format
-          sbom: 'sbom/sbom.json'   # Path to your SBOM file (adjust if necessary)
+          sbom: 'sbom/image.spdx.json'  # Path to the SBOM file (adjusted to where it was saved)
 
       - name: Upload Trivy License Scan Results
         uses: actions/upload-artifact@v3
