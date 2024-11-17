@@ -70,7 +70,7 @@ jobs:
       - name: Step 8 Run Trivy License Scan
         id: License
         run: |
-          trivy image --format sarif --scanners license --license-full --severity UNKNOWN,HIGH,CRITICAL localbuild/testimage:latest
+          trivy image --format sarif --scanners license --license-full --severity UNKNOWN,HIGH,CRITICAL -o trivy-license-report.sarif localbuild/testimage:latest
 
  #Step 9: Upload Trivy License Scan results as an artifact for later review
       - name: Step 9 Upload License result report
