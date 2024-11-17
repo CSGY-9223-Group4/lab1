@@ -54,7 +54,11 @@ jobs:
       #    scan-ref: .
       #    ignore-unfixed: false
       #    vuln-type: os,library
-
+      
+      - name: Install Trivy
+        run: |
+          curl -sfL https://github.com/aquasecurity/trivy/releases/download/v0.20.0/trivy_0.20.0_Linux-64bit.tar.gz | tar xz -C /usr/local/bin
+      
       - name: Run Trivy License check using v20
         #uses: aquasecurity/trivy-action@0.20.0
         #with:
