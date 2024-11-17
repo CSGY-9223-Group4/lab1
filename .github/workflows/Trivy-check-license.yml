@@ -46,7 +46,8 @@ jobs:
         with:
           input: "image.cyclonedx.json"  # Path to the CycloneDX SBOM file
           format: "json"  # Output format for the license report
-          scan-type: "sbom"  # Perform a license scan
+          #scan-type: "sbom"  # Perform a license scan
+          scan-type: "cyclonedx"  # Perform a license scan
           output: "trivy-license-report.json"  # Specify output file for the report
           severity: "HIGH,CRITICAL"  # Severity filter for licenses
           list-all-pkgs: false  # Optional: Do not list all packages, only those with issues
