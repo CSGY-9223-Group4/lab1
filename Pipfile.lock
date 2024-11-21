@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "59048995e6361822e9c9eee9457fc84641960c5010a9f359bf1bdcce31a664ff"
+            "sha256": "a0cd22bb33abc02b4a74ff213d9840344c5c71ad9660616d842b5b836d7a8768"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -45,12 +45,12 @@
         },
         "flask-jwt-extended": {
             "hashes": [
-                "sha256:4d8939ca006c92209fad82e591471db897f33b6a85561f8e792c5aa6816ef39c",
-                "sha256:be5785e2e3ef4d8773ba6d10247e78827dcf0b111efbfcd7a0794b5f7c750d90"
+                "sha256:52f35bf0985354d7fb7b876e2eb0e0b141aaff865a22ff6cc33d9a18aa987978",
+                "sha256:8085d6757505b6f3291a2638c84d207e8f0ad0de662d1f46aa2f77e658a0c976"
             ],
             "index": "pypi",
             "markers": "python_version >= '3.9' and python_version < '4'",
-            "version": "==4.7.0"
+            "version": "==4.7.1"
         },
         "greenlet": {
             "hashes": [
