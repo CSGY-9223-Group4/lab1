@@ -12,8 +12,8 @@ def main():
   signer_alice = CryptoSigner(key_alice)
   # Fetch and load Bob's and Carl's public keys
   # to specify that they are authorized to perform certain step in the layout
-  key_bob  = load_public_key_from_file("../functionary_bob/bob.pub")
-  key_carl  = load_public_key_from_file("../functionary_carl/carl.pub")  
+  key_bob  = load_public_key_from_file("../In-toto/functionary_bob/bob.pub")
+  key_carl  = load_public_key_from_file("../In-toto/functionary_carl/carl.pub")  
 
   layout = Layout.read({
       "_type": "layout",
