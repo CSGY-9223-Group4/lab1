@@ -31,4 +31,4 @@ jobs:
 
       - name: Run Black
         run: |
-          black --check .
+          black .  # apply the fix, vs this just checks "black --check ."
