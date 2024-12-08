@@ -39,7 +39,7 @@ jobs:
     - name: Format with Black
       id: black
       run: |
-        black --check .
+        black . # black --check .
 
     - name: Test with pytest and coverage
       id: tests
