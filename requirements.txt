@@ -1,4 +1,4 @@
-blinker==1.9.0
+blinker==1.8.2
 click==8.1.7
 Flask==3.1.0
 Flask-JWT-Extended==4.7.1
