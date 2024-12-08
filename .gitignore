@@ -168,3 +168,11 @@ jwt_secret.txt
 
 # VSCode
 .vscode/
+
+#In-toto
+*.swp
+
+.venv/
+In-toto/functionary_bob/bob
+In-toto/functionary_carl/carl
+In-toto/owner_alice/alice
