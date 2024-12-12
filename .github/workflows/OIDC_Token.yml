@@ -1,0 +1,15 @@
+name: Get OIDC Token
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  get_oidc_token:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Request OIDC token
+        id: oidc_token
+        run: echo "TOKEN=$(curl -s --header 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' https://api.github.com/repos/${{ github.repository }}/actions/runners/registration-token)" >> $GITHUB_ENV
+      - name: Save OIDC token to file
+        run: echo "${{ env.TOKEN }}" > fulcio_token
